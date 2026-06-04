@@ -5,139 +5,263 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bộ Điều Khiển Màn Hình E-Paper của Luân</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; text-align: center; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tabs { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .tab-btn.active { background: #007bff; }
-        .canvas-area { border: 2px dashed #ccc; width: 400px; height: 300px; margin: 10px auto; background: #fff; position: relative; overflow: hidden; }
-        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
-        .btn { padding: 10px 20px; color: white; border: none; border-radius: 4px; cursor: pointer; width: 85%; font-weight: bold; }
-        .btn-green { background-color: #4CAF50; }
-        .btn-blue { background-color: #007bff; }
-        .btn-red { background-color: #dc3545; }
-        .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; text-align: left; }
-        .panel-box { border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
-        #log { margin-top: 20px; padding: 10px; background: #eee; border-radius: 4px; text-align: left; font-size: 12px; max-height: 100px; overflow-y: auto; }
+        :root { --primary-color: #4CAF50; --secondary-color: #007bff; --danger-color: #dc3545; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f5f5f5; color: #333; font-size: 14px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { font-size: 18px; margin-top: 0; text-align: center; color: #111; }
+        p.subtitle { font-size: 12px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 15px; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #eee; border: none; cursor: pointer; font-weight: bold; font-size: 13px; color: #555; transition: 0.2s; }
+        .tab-btn.active { background: var(--secondary-color); color: white; border-radius: 4px 4px 0 0; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .btn { padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .btn-full { grid-column: span 2; }
+        .btn-green { background-color: var(--primary-color); }
+        .btn-blue { background-color: var(--secondary-color); }
+        .btn-red { background-color: var(--danger-color); }
+        .canvas-container { position: relative; width: 400px; height: 300px; border: 2px dashed #999; margin: 10px auto; background: #fff; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
+        .design-panel { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #ddd; }
+        .panel-row label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px; }
+        .canvas-item { position: absolute; padding: 6px; border: 1px solid #333; background: #e0e0e0; cursor: move; user-select: none; font-size: 14px; font-weight: bold; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+        .canvas-item.selected { border: 2px solid var(--secondary-color); background: #b3d7ff; }
+        #log-panel { margin-top: 15px; background: #222; color: #0f0; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; max-height: 120px; overflow-y: auto; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Bộ điều khiển Bluetooth màn hình E-Paper</h2>
-    <p style="font-size: 13px; color: #666;">Kết nối thiết bị trước khi cài đặt đồng hồ.</p>
+    <p class="subtitle">Kết nối thiết bị trước khi cài đặt đồng hồ.</p>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('setting')">Cài đặt màn hình</button>
-        <button class="tab-btn" onclick="switchTab('design')">Trình thiết kế mẫu</button>
+        <button class="tab-btn active" id="btn-tab-setting" onclick="switchTab('setting')">Cài đặt màn hình điện tử</button>
+        <button class="tab-btn" id="btn-tab-design" onclick="switchTab('design')">Trình thiết kế mẫu</button>
     </div>
 
-    <!-- TAB 1: CAI DAT -->
     <div id="tab-setting">
-        <div class="btn-group">
-            <button class="btn btn-green" onclick="connectBLE()">Thiết bị quét</button>
-            <button class="btn btn-green" onclick="sendCommand('RECONNECT')">Kết nối lại</button>
-            <button class="btn btn-green" onclick="sendCommand('CLOCK_MODE')">Chuyển sang Chế độ đồng hồ</button>
-            <button class="btn btn-green" onclick="sendCommand('CALENDAR_MODE')">Chuyển sang Chế độ Lịch</button>
-            <button class="btn btn-green" onclick="sendCommand('INVERT_COLOR')">Bật/tắt chế độ đảo màu đen trắng</button>
-            <button class="btn btn-green" onclick="sendCommand('ROTATE_180')">Xoay màn hình 180 độ</button>
+        <div class="btn-grid">
+            <button class="btn btn-green btn-full" onclick="connectBluetooth()">Thiết bị quét</button>
+            <button class="btn btn-green btn-full" onclick="sendBLECommand('RECONNECT')">Kết nối lại</button>
+            <button class="btn btn-green" onclick="sendBLECommand('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
+            <button class="btn btn-green" onclick="sendBLECommand('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
+            <button class="btn btn-green" onclick="sendBLECommand('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
+            <button class="btn btn-green" onclick="sendBLECommand('IMAGE_MODE')">Đặt chế độ hình ảnh</button>
+            <button class="btn btn-green" onclick="sendBLECommand('INVERT_BW')">Bật/tắt chế độ đảo màu đen trắng</button>
+            <button class="btn btn-green" onclick="sendBLECommand('ROTATE_180')">Xoay màn hình 180 độ</button>
         </div>
     </div>
 
-    <!-- TAB 2: THIET KE -->
     <div id="tab-design" style="display:none;">
-        <div class="canvas-area" id="canvas"></div>
-        <div class="control-panel">
-            <div class="panel-box">
-                <label>Thêm phần tử:</label><br>
-                <select id="elementType" style="width:100%; margin: 5px 0; padding: 5px;">
-                    <option value="time">Thời gian (Giờ:Phút)</option>
-                    <option value="date">Ngày tháng</option>
-                    <option value="temp">Nhiệt độ (°C)</option>
-                    <option value="battery">Biểu tượng Pin</option>
-                </select>
-                <button class="btn btn-green" style="width:100%;" onclick="addElement()">Thêm phần tử</button>
+        <div class="canvas-container" id="epaper-canvas"></div>
+        
+        <div class="design-panel">
+            <div class="panel-row">
+                <div>
+                    <label>Thêm phần tử:</label>
+                    <select id="el-type" style="width:100%; padding:6px; border-radius:4px;">
+                        <option value="time_flip">Đồng hồ lật (Giờ:Phút)</option>
+                        <option value="date_solar">Ngày Dương Lịch</option>
+                        <option value="date_lunar">Ngày Âm Lịch</option>
+                        <option value="temp_val">Hiển thị Nhiệt độ</option>
+                        <option value="bat_icon">Biểu tượng Pin</option>
+                    </select>
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button class="btn btn-green" style="width:100%; padding:6px;" onclick="addCanvasItem()">Thêm phần tử</button>
+                </div>
             </div>
-            <div class="panel-box">
-                <label>Kích thước phần tử:</label><br>
-                <input type="number" id="elWidth" value="40" style="width:40px;"> x 
-                <input type="number" id="elHeight" value="40" style="width:40px;">
-                <button onclick="updateSize()" style="padding:2px 5px;">Áp dụng</button>
-                <br><br>
-                <button class="btn btn-red" style="width:100%; padding:5px;" onclick="clearCanvas()">Xóa tất cả Canvas</button>
+
+            <div class="panel-row">
+                <div>
+                    <label>Kích thước phần tử (W x H):</label>
+                    <input type="number" id="item-w" value="60" style="width:45%;"> x 
+                    <input type="number" id="item-h" value="40" style="width:45%;">
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button class="btn btn-blue" style="width:100%; padding:6px;" onclick="applyItemSize()">Áp dụng kích thước</button>
+                </div>
+            </div>
+
+            <div class="btn-grid" style="margin-top:5px;">
+                <button class="btn btn-red btn-full" onclick="clearAllCanvas()">Xóa tất cả các thành phần trên Canvas</button>
+                <button class="btn btn-blue btn-full" onclick="deployCustomTemplate()">Áp dụng mẫu và truyền dữ liệu</button>
             </div>
         </div>
-        <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="deployTemplate()">Áp dụng mẫu và truyền dữ liệu</button>
     </div>
 
-    <div id="log">Nhật ký: Khung vẽ màn hình sẵn sàng: 400x300</div>
+    <div id="log-panel">Nhật ký hệ thống: Sẵn sàng kết nối Web Bluetooth.</div>
 </div>
 
 <script>
-    let bleDevice = null;
-    let bleCharacteristic = null;
+    let bluetoothDevice = null;
+    let txCharacteristic = null;
+    let selectedItem = null;
 
-    function log(msg) {
-        document.getElementById('log').innerHTML += "<br>" + msg;
+    // UUID dịch vụ BLE chuẩn cho mạch kết nối UART/Serial
+    const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
+    const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
+
+    function printLog(text) {
+        const panel = document.getElementById('log-panel');
+        panel.innerHTML += "<br>> " + text;
+        panel.scrollTop = panel.scrollHeight;
     }
 
-    function switchTab(tab) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        if(tab === 'setting') {
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (tabName === 'setting') {
             document.getElementById('tab-setting').style.display = 'block';
             document.getElementById('tab-design').style.display = 'none';
-            event.target.classList.add('active');
+            document.getElementById('btn-tab-setting').classList.add('active');
         } else {
             document.getElementById('tab-setting').style.display = 'none';
             document.getElementById('tab-design').style.display = 'block';
-            event.target.classList.add('active');
+            document.getElementById('btn-tab-design').classList.add('active');
         }
     }
 
-    async function connectBLE() {
+    async function connectBluetooth() {
         try {
-            log("Đang quét thiết bị Bluetooth...");
-            bleDevice = await navigator.bluetooth.requestDevice({
+            printLog("Đang quét thiết bị điều khiển E-Paper...");
+            bluetoothDevice = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb'] 
+                optionalServices: [SERVICE_UUID]
             });
-            log("Đang kết nối tới: " + bleDevice.name);
-            const server = await bleDevice.gatt.connect();
-            log("Đã kết nối GATT thành công.");
-        } catch (error) {
-            log("Lỗi kết nối: " + error);
+            
+            printLog(`Đang kết nối tới thiết bị: ${bluetoothDevice.name}...`);
+            const server = await bluetoothDevice.gatt.connect();
+            
+            printLog("Đang cấu hình dịch vụ Bluetooth...");
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            txCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+            
+            printLog("ĐÃ KẾT NỐI THÀNH CÔNG! Sẵn sàng điều khiển.");
+        } catch (err) {
+            printLog("Lỗi kết nối Bluetooth: " + err);
         }
     }
 
-    function sendCommand(cmd) {
-        log("Đã gửi lệnh: " + cmd);
-        // Hàm gửi dữ liệu byte xuống mạch ESP32
+    async function sendBLECommand(commandString) {
+        if (!txCharacteristic) {
+            printLog("Lỗi: Chưa kết nối Bluetooth. Vui lòng bấm 'Thiết bị quét'.");
+            alert("Vui lòng quét kết nối thiết bị Bluetooth trước!");
+            return;
+        }
+        try {
+            printLog(`Đang truyền lệnh: [${commandString}] xuống mạch...`);
+            const encoder = new TextEncoder();
+            const dataBuffer = encoder.encode(commandString + '\n');
+            await txCharacteristic.writeValue(dataBuffer);
+            printLog("Truyền dữ liệu lệnh thành công.");
+        } catch (err) {
+            printLog("Lỗi khi truyền dữ liệu: " + err);
+        }
     }
 
-    function addElement() {
-        let type = document.getElementById('elementType').value;
-        let canvas = document.getElementById('canvas');
-        let newEl = document.createElement('div');
-        newEl.style.position = 'absolute';
-        newEl.style.left = '50px';
-        newEl.style.top = '50px';
-        newEl.style.border = '1px solid black';
-        newEl.style.padding = '5px';
-        newEl.style.background = '#ddd';
-        newEl.style.cursor = 'move';
-        newEl.innerText = type.toUpperCase();
-        canvas.appendChild(newEl);
-        log("Đã thêm phần tử: " + type);
+    function addCanvasItem() {
+        const canvas = document.getElementById('epaper-canvas');
+        const type = document.getElementById('el-type').value;
+        const item = document.createElement('div');
+        
+        item.className = 'canvas-item';
+        item.innerText = type.toUpperCase();
+        item.style.left = '20px';
+        item.style.top = '20px';
+        item.style.width = '70px';
+        item.style.height = '30px';
+        item.dataset.type = type;
+
+        // Xử lý sự kiện click chọn phần tử để sửa kích thước
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(selectedItem) selectedItem.classList.remove('selected');
+            selectedItem = item;
+            item.classList.add('selected');
+            document.getElementById('item-w').value = parseInt(item.style.width);
+            document.getElementById('item-h').value = parseInt(item.style.height);
+        });
+
+        // Kéo thả phần tử trên Canvas di động trực quan
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        const startDrag = (e) => {
+            isDragging = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            offsetX = clientX - item.offsetLeft;
+            offsetY = clientY - item.offsetTop;
+        };
+
+        const doDrag = (e) => {
+            if (!isDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            let newX = clientX - offsetX;
+            let newY = clientY - offsetY;
+
+            // Giới hạn trong khung E-paper 400x300
+            newX = Math.max(0, Math.min(newX, 400 - item.offsetWidth));
+            newY = Math.max(0, Math.min(newY, 300 - item.offsetHeight));
+
+            item.style.left = newX + 'px';
+            item.style.top = newY + 'px';
+        };
+
+        const stopDrag = () => { isDragging = false; };
+
+        item.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', stopDrag);
+
+        item.addEventListener('touchstart', startDrag);
+        document.addEventListener('touchmove', doDrag);
+        document.addEventListener('touchend', stopDrag);
+
+        canvas.appendChild(item);
+        printLog(`Đã thêm khối: ${type} lên khung vẽ.`);
     }
 
-    function clearCanvas() {
-        document.getElementById('canvas').innerHTML = '';
-        log("Đã xóa sạch Canvas.");
+    function applyItemSize() {
+        if (!selectedItem) {
+            alert("Vui lòng bấm chọn một phần tử trên khung vẽ trước!");
+            return;
+        }
+        selectedItem.style.width = document.getElementById('item-w').value + 'px';
+        selectedItem.style.height = document.getElementById('item-h').value + 'px';
+        printLog("Đã cập nhật kích thước phần tử được chọn.");
     }
 
-    function deployTemplate() {
-        log("Đang biên dịch bố cục và truyền xuống E-Paper...");
+    function clearAllCanvas() {
+        document.getElementById('epaper-canvas').innerHTML = '';
+        selectedItem = null;
+        printLog("Đã xóa sạch các thành phần thiết kế.");
     }
+
+    function deployCustomTemplate() {
+        const items = document.querySelectorAll('.canvas-item');
+        if(items.length === 0) {
+            alert("Canvas trống, hãy thêm phần tử để thiết kế!");
+            return;
+        }
+        
+        let layoutData = "LAYOUT:";
+        items.forEach(item => {
+            layoutData += `${item.dataset.type},${parseInt(item.style.left)},${parseInt(item.style.top)},${parseInt(item.style.width)},${parseInt(item.style.height)}|`;
+        });
+        
+        // Gửi chuỗi tọa độ hình học thiết kế xuống cho ESP32 phân tích pixel
+        sendBLECommand(layoutData);
+    }
+
+    // Click ra ngoài canvas thì hủy chọn phần tử
+    document.getElementById('epaper-canvas').addEventListener('click', () => {
+        if(selectedItem) selectedItem.classList.remove('selected');
+        selectedItem = null;
+    });
 </script>
 </body>
 </html>
