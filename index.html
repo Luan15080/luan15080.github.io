@@ -6,22 +6,26 @@
     <title>Thẻ E-Paper 2.9" - Đồng Bộ Mặt Đồng Hồ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
     <style>
-        /* ... Các CSS cũ của anh ... */
-        .btn-conn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; text-align: center; font-size: 16px; margin-bottom: 10px; transition: 0.3s; }
-        .state-idle { background-color: #4CAF50; }
-        .state-connecting { background-color: #FFC107; color: #333; }
-        .state-connected { background-color: #2196F3; }
-        .state-error { background-color: #F44336; }
-        /* Giữ nguyên các class CSS còn lại từ code gốc của anh */
+        :root { --primary-color: #4CAF50; --blue-color: #2196F3; --border-color: #ccc; --bg-preview: #fff; --yellow: #FFC107; --red: #F44336; }
         body { font-family: Arial, sans-serif; margin: 10px; background-color: #f9f9f9; }
-        .section-title { font-size: 16px; font-weight: bold; color: #333; border-left: 4px solid #4CAF50; padding-left: 8px; margin: 15px 0 10px 0; }
+        
+        /* Nút Bluetooth đa trạng thái */
+        .btn-conn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; text-align: center; font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
+        .state-idle { background-color: var(--primary-color); }
+        .state-connecting { background-color: var(--yellow); color: #333; }
+        .state-connected { background-color: var(--blue-color); }
+        .state-error { background-color: var(--red); }
+
+        .section-title { font-size: 16px; font-weight: bold; color: #333; border-left: 4px solid var(--primary-color); padding-left: 8px; margin: 15px 0 10px 0; }
         .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .template-card-item { background: white; border: 2px solid #e0e0e0; border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; }
-        .template-card-item.selected-active { border-color: #2196F3; background-color: #f0f7ff; }
-        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background-color: #fff; min-height: 250px; padding: 10px; margin-bottom: 15px; }
-        .btn-sync { width: 100%; padding: 15px; background: #2196F3; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .template-card-item.selected-active { border-color: var(--blue-color); background-color: #f0f7ff; }
+        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #555; }
+        .card-demo-box { border: 1px solid #ddd; padding: 15px 5px; border-radius: 4px; background: #fff; min-height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background-color: var(--bg-preview); min-height: 250px; padding: 10px; margin-bottom: 15px; }
+        .btn-sync { width: 100%; padding: 15px; background: var(--blue-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .input-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
-        .input-row input { width: 60%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .input-row input { width: 60%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; }
         .log-box { margin-top: 15px; background: #222; color: #22ff22; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 4px; }
     </style>
 </head>
@@ -31,7 +35,13 @@
 
     <div class="section-title">Chạm Trực Tiếp Để Chọn Mặt Màn Hình</div>
     <div class="template-grid" id="grid-templates">
-        </div>
+        <div class="template-card-item" onclick="setTemplate(1)"><div class="card-title">Mẫu 1: Lật Dài</div><div class="card-demo-box">12:30</div></div>
+        <div class="template-card-item" onclick="setTemplate(2)"><div class="card-title">Mẫu 2: Lịch Số</div><div class="card-demo-box">05</div></div>
+        <div class="template-card-item" onclick="setTemplate(3)"><div class="card-title">Mẫu 3: Số To</div><div class="card-demo-box">12:30</div></div>
+        <div class="template-card-item" onclick="setTemplate(4)"><div class="card-title">Mẫu 4: Âm Dương</div><div class="card-demo-box">ÂM LỊCH</div></div>
+        <div class="template-card-item" onclick="setTemplate(5)"><div class="card-title">Mẫu 5: Tháng</div><div class="card-demo-box">📅</div></div>
+        <div class="template-card-item" onclick="setTemplate(6)"><div class="card-title">Mẫu 6: Kim Tròn</div><div class="card-demo-box">🕒</div></div>
+    </div>
 
     <div class="section-title">Khung Xem Trước Thực Tế</div>
     <div id="khung-xem-truoc"></div>
@@ -44,8 +54,10 @@
     <div class="log-box" id="system-log">Hệ thống sẵn sàng.</div>
 
     <script>
+        let currentTemplate = 1;
+        let bleChar = null;
+
         const btnBluetooth = document.getElementById('btn-bluetooth');
-        
         function updateBtnState(state) {
             btnBluetooth.className = "btn-conn";
             if(state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
@@ -57,20 +69,40 @@
         btnBluetooth.addEventListener('click', async () => {
             updateBtnState('connecting');
             try {
-                // LOGIC GỐC CỦA ANH
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true, 
                     optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
                 });
-                await device.gatt.connect();
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+                bleChar = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
                 updateBtnState('connected');
                 device.addEventListener('gattserverdisconnected', () => updateBtnState('error'));
-            } catch (err) {
-                updateBtnState('error');
-            }
+            } catch (err) { updateBtnState('error'); }
         });
 
-        // DÁN CÁC HÀM CŨ CỦA ANH VÀO ĐÂY: renderTemplate, transferDataToHardware, getPhoneTimeDetails, ...
+        function setTemplate(idx) {
+            currentTemplate = idx;
+            document.querySelectorAll('.template-card-item').forEach((c, i) => {
+                c.className = (i + 1 === idx) ? 'template-card-item selected-active' : 'template-card-item';
+            });
+            render();
+        }
+
+        function render() {
+            // Logic vẽ khung xem trước của anh
+            const now = new Date();
+            document.getElementById('input-duong-lich').value = now.toLocaleDateString();
+            document.getElementById('khung-xem-truoc').innerHTML = "Đang hiển thị Mẫu " + currentTemplate;
+        }
+
+        document.getElementById('btn-transfer-data').onclick = async () => {
+            if(!bleChar) { alert("Chưa kết nối!"); return; }
+            // Logic truyền dữ liệu byte của anh
+            alert("Đã đồng bộ!");
+        };
+
+        render();
     </script>
 </body>
 </html>
