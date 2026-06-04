@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper - Bộ Điều Khiển Toàn Diện</title>
+    <title>Thẻ E-Paper - Thư Viện Mặt Đồng Hồ Trực Quan</title>
     <style>
         :root { --primary-green: #4CAF50; --active-blue: #3f51b5; }
         body { font-family: Arial, sans-serif; margin: 0; padding: 5px; background-color: #f9f9f9; font-size: 12px; }
@@ -16,7 +16,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        h3 { font-size: 14px; margin: 10px 0 5px 0; color: #111; }
+        h3 { font-size: 14px; margin: 10px 0 5px 0; color: #111; border-left: 3px solid #4CAF50; padding-left: 6px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
         .btn-block { width: 100%; display: block; margin-bottom: 8px; }
         .btn { background-color: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; text-align: center; }
@@ -24,113 +24,120 @@
         .btn-blue { background-color: #2196F3; }
         .btn-red { background-color: #f44336; }
         
-        input[type="text"], input[type="number"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px; }
-        label { font-weight: bold; display: block; margin-bottom: 3px; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px; }
+        label { font-weight: bold; display: block; margin-bottom: 3px; color: #333; }
 
-        .preview-box { width: 100%; max-width: 400px; height: 300px; border: 2px solid #333; margin: 10px auto; background: white; position: relative; overflow: hidden; }
-        .matrix-preview { background: black; color: white; padding: 10px; text-align: center; font-family: monospace; font-size: 24px; letter-spacing: 2px; font-weight: bold; border: 2px dashed #555; }
+        /* LƯỚI CHỌN MẶT ĐỒNG HỒ TRỰC QUAN */
+        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .template-card { border: 2px solid #ccc; border-radius: 6px; padding: 8px; background: #fdfdfd; cursor: pointer; text-align: center; transition: all 0.2s ease; position: relative; }
+        .template-card:hover { border-color: #999; }
+        .template-card.selected { border-color: #2196F3; background: #e3f2fd; box-shadow: 0 2px 6px rgba(33,150,243,0.3); }
+        .template-card .card-title { font-weight: bold; font-size: 11px; margin-bottom: 6px; color: #333; }
         
-        .icon-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-bottom: 8px; }
-        .icon-btn { padding: 4px 2px; border: 1px solid #ccc; background: #fff; font-size: 10px; text-align: center; cursor: pointer; border-radius: 2px; }
-        
-        #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #333; margin-top: 10px; border-left: 3px solid #3f51b5; }
+        /* BẢN THU NHỎ (MINI) CỦA CÁC MẪU TRÊN LƯỚI CHỌN */
+        .mini-preview { background: #fff; border: 1px solid #aaa; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 9px; pointer-events: none; height: 50px; display: flex; flex-direction: column; justify-content: space-between; }
+
+        /* KHUNG KHU VỰC XEM TRƯỚC LỚN (CANVAS CHÍNH) */
+        .preview-box { width: 100%; max-width: 400px; min-height: 180px; border: 2px solid #111; margin: 10px auto; background: #fff; padding: 15px; box-sizing: border-box; position: relative; border-radius: 4px; color: #000; font-family: monospace; }
+        .flip-layout { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 15px 0; }
+        .flip-card { background: #111; color: #fff; font-size: 42px; font-weight: bold; padding: 4px 8px; border-radius: 5px; min-width: 45px; text-align: center; }
+        .huge-date { font-size: 55px; font-weight: bold; text-align: center; margin: 10px 0; }
+        .sub-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
+        .top-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px; }
+
+        #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 90px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #333; margin-top: 10px; border-left: 3px solid #3f51b5; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="tabs-header">
-        <button class="tab-link active" onclick="openTab(event, 'tab-setting')">Cài đặt màn hình điện tử</button>
-        <button class="tab-link" onclick="openTab(event, 'tab-countdown')">Mô-đun đếm ngược</button>
-        <button class="tab-link" onclick="openTab(event, 'tab-image')">Chuyển ảnh</button>
-        <button class="tab-link" onclick="openTab(event, 'tab-designer')">Trình thiết kế mẫu</button>
+        <button class="tab-link active" onclick="openTab(event, 'tab-setting')">Kết nối Bluetooth</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-designer')">Kho Mẫu Đồng Hồ</button>
     </div>
 
     <div id="tab-setting" class="tab-content active">
-        <h3>Bộ điều khiển Bluetooth màn hình E-Paper - Kết nối thiết bị trước khi cài đặt đồng hồ.</h3>
+        <h3>Bộ điều khiển thiết bị E-Paper</h3>
         <div class="grid-2">
-            <button class="btn" style="background-color: #2196F3;" onclick="scanBluetoothDevice()">Thiết bị quét</button>
+            <button class="btn btn-blue" onclick="scanBluetoothDevice()">Thiết bị quét</button>
             <button class="btn btn-gray" onclick="reconnectDevice()">Kết nối lại</button>
         </div>
-        <button class="btn btn-block btn-gray" onclick="clearLog()">Xóa nhật ký</button>
         
-        <div class="grid-2" style="grid-template-columns: 4fr 1fr;">
-            <button class="btn" id="btn-time-sync" onclick="syncTime()">Thời gian thiết lập: Đồng bộ ngay</button>
-            <input type="number" value="0" id="sync-offset">
+        <div style="background: #eef; padding: 10px; border-radius: 4px; margin: 5px 0; font-weight: bold; text-align: center; color: #2196F3; font-size: 13px; border: 1px dashed #2196F3;">
+            Điện áp mạch phản hồi: <span id="real-voltage-txt">Chưa có dữ liệu (0V)</span>
         </div>
-
-        <div class="grid-2">
-            <button class="btn" onclick="sendCommand('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
-            <button class="btn" onclick="sendCommand('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
-            <button class="btn" onclick="sendCommand('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
-            <button class="btn" onclick="sendCommand('SET_IMG_MODE')">Đặt chế độ hình ảnh</button>
-            <button class="btn" onclick="sendCommand('INVERT_COLOR')">Bật/tắt chế độ đảo màu đen trắng</button>
-            <button class="btn" onclick="sendCommand('ROTATE_180')">Xoay màn hình 180 độ</button>
-        </div>
-
-        <input type="text" id="hex-refresh-input" value="Hiệu chỉnh làm mới một phần màu đỏ (hex 01-0f). Tắt màu đỏ và hiệu chỉnh màu đen (10-f0).">
-        <div class="grid-2">
-            <button class="btn" onclick="sendCommand('PARTIAL_CONFIG')">Thiết lập hiệu chỉnh làm mới một phần</button>
-            <button class="btn btn-gray" onclick="location.reload()">Làm mới trang web</button>
-            <button class="btn" onclick="sendCommand('AA')">Gửi AA</button>
-            <button class="btn" onclick="sendCommand('AB')">Gửi AB</button>
-        </div>
-
-        <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 8px;">
-            <span>Giờ bắt đầu:</span><input type="number" id="sleep-start" value="0" style="width:50px; margin:0;">
-            <span>Giờ kết thúc:</span><input type="number" id="sleep-end" value="0" style="width:50px; margin:0;">
-            <button class="btn" style="flex:1;" onclick="sendCommand('SLEEP_ON')">Bật chế độ ngủ</button>
-        </div>
-        <button class="btn btn-block btn-red" onclick="sendCommand('SLEEP_OFF')">Tắt chế độ ngủ + Chế độ tiết kiệm pin + Sửa chữa</button>
-
-        <label>Biển báo đỗ xe đồng hồ độ phân giải thấp 2,13" - Nhập số:</label>
-        <input type="text" id="parking-num" placeholder="Con số:">
-        <button class="btn btn-block" onclick="sendCommand('SET_PARKING_NUM')">Đặt số hiển thị</button>
-
-        <label>Kích hoạt:</label>
-        <input type="text" id="active-code" placeholder="Nhập mã kích hoạt:">
-        <button class="btn btn-block btn-blue" onclick="sendCommand('ACTIVATE_DEV')">Kích hoạt</button>
-    </div>
-
-    <div id="tab-countdown" class="tab-content">
-        <h3>Công cụ chọn ngày đếm ngược</h3>
-        <input type="text" value="COUNT" id="countdown-text-input" oninput="document.getElementById('countdown-preview').innerText=this.value">
-        <div class="matrix-preview" id="countdown-preview">COUNT</div>
-        <div class="grid-2" style="margin-top:10px;">
-            <button class="btn btn-blue" onclick="sendCommand('START_COUNTDOWN')">Bắt đầu đếm ngược</button>
-            <button class="btn btn-gray" onclick="sendCommand('STOP_COUNTDOWN')">Dừng đếm ngược</button>
-        </div>
-    </div>
-
-    <div id="tab-image" class="tab-content">
-        <h3>Tải ảnh lên màn hình</h3>
-        <input type="file" accept="image/*" style="margin-bottom:8px;">
-        <div class="grid-2">
-            <button class="btn btn-blue" onclick="logMessage('Áp dụng bộ lọc...')">Áp dụng bộ lọc ảnh</button>
-            <button class="btn btn-red" onclick="sendCommand('UPLOAD_IMAGE')">Tải lên màn hình ngay</button>
-        </div>
+        
+        <button class="btn btn-block btn-gray" onclick="clearLog()">Xóa nhật ký hệ thống</button>
     </div>
 
     <div id="tab-designer" class="tab-content">
-        <div class="preview-box" style="display:flex; justify-content:center; align-items:center; background:#eee;">Khung Canvas 400x300</div>
-        <div class="icon-grid" style="margin-top:8px;">
-            <script>
-                for(let i=1; i<=25; i++) {
-                    document.write(`<div class="icon-btn" onclick="logMessage('Đã chọn icon I${i}')">I${i}</div>`);
-                }
-            </script>
+        <h3>Chạm Trực Tiếp Để Chọn Mặt Màn Hình</h3>
+        
+        <div class="template-grid">
+            <div class="template-card selected" id="card-flip" onclick="selectTemplateVisual('flip')">
+                <div class="card-title">Mẫu 1: Đồng Hồ Lật</div>
+                <div class="mini-preview" style="background: #eee;">
+                    <div style="display:flex; justify-content:space-between; font-size:7px;"><span>Thứ Sáu</span><span>3.7V</span></div>
+                    <div style="text-align:center; font-weight:bold; font-size:14px; margin:2px 0; background:#333; color:#fff; border-radius:2px;">12:30</div>
+                    <div style="font-size:7px; text-align:left;">Âm Lịch 21/04</div>
+                </div>
+            </div>
+            <div class="template-card" id="card-calendar" onclick="selectTemplateVisual('calendar')">
+                <div class="card-title">Mẫu 2: Lịch Tối Giản</div>
+                <div class="mini-preview">
+                    <div style="text-align:center; font-size:7px; border-bottom:1px solid #000;">Thứ Sáu - 05/06</div>
+                    <div style="text-align:center; font-size:18px; font-weight:bold;">05</div>
+                    <div style="display:flex; justify-content:space-between; font-size:6px;"><span>Âm 21</span><span>12:30</span></div>
+                </div>
+            </div>
+            <div class="template-card" id="card-modern" onclick="selectTemplateVisual('modern')">
+                <div class="card-title">Mẫu 3: Số Hiện Đại</div>
+                <div class="mini-preview">
+                    <div style="text-align:center; font-weight:bold; font-size:12px;">12:30</div>
+                    <div style="background:#000; color:#fff; text-align:center; font-size:7px;">05/06 | Thứ Sáu</div>
+                    <div style="font-size:6px; text-align:right;">Pin: 3.7V</div>
+                </div>
+            </div>
+            <div class="template-card" id="card-lunar" onclick="selectTemplateVisual('lunar')">
+                <div class="card-title">Mẫu 4: Lịch Âm Dương</div>
+                <div class="mini-preview">
+                    <div style="display:flex; justify-content:space-between; font-size:6px;"><span>DƯƠNG LỊCH</span><span>12:30</span></div>
+                    <div style="font-size:7px; font-weight:bold;">Ngày: 05/06/2026</div>
+                    <div style="font-size:8px; font-weight:bold; color:red;">Âm Lịch 21/04</div>
+                </div>
+            </div>
         </div>
-        <button class="btn btn-block btn-blue">Áp dụng mẫu và truyền dữ liệu</button>
+
+        <h3>Khung Xem Trước Kích Thước Thực</h3>
+        <div class="preview-box" id="canvas-preview"></div>
+
+        <div style="border: 1px solid #ddd; padding: 10px; background: #fff; border-radius: 4px; margin-top: 10px;">
+            <label>Nhiệt độ hiện tại (°C):</label>
+            <input type="number" id="temp-input" value="30" oninput="renderTemplate()">
+
+            <label>Thông tin ngày Dương lịch:</label>
+            <input type="text" id="date-input" value="05/06/2026" oninput="renderTemplate()">
+
+            <label>Thông tin ngày Âm lịch:</label>
+            <input type="text" id="lunar-input" value="Âm Lịch 21/04" oninput="renderTemplate()">
+
+            <label>Thứ trong tuần:</label>
+            <input type="text" id="day-input" value="Thứ Sáu" oninput="renderTemplate()">
+
+            <button class="btn btn-blue btn-block" style="margin-top:12px; padding:12px; font-size:13px;" onclick="uploadTemplateToDevice()">Nạp giao diện đã chọn xuống màn hình</button>
+        </div>
     </div>
 
-    <div id="log-terminal">Hệ thống: Sẵn sàng.</div>
+    <div id="log-terminal">Hệ thống: Sẵn sàng tải bộ thư viện trực quan.</div>
 </div>
 
 <script>
     let bleDevice = null;
     let bleCharacteristic = null;
+    let currentHour = "08", currentMin = "30";
+    let hardwareVoltageValue = "3.7V"; 
+    let activeTemplateType = "flip"; // Mẫu đang được chọn hiện tại
 
-    // Cấu hình mã UUID lọc mở rộng để trình duyệt ép buộc hiển thị bảng kết nối công khai
     const UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
     const UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
@@ -142,6 +149,7 @@
         for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
         document.getElementById(tabId).style.display = "block";
         evt.currentTarget.className += " active";
+        if(tabId === 'tab-designer') renderTemplate();
     }
     
     function logMessage(msg) {
@@ -152,70 +160,133 @@
 
     function clearLog() { document.getElementById('log-terminal').innerHTML = "Nhật ký:"; }
 
-    // HÀM QUÉT THỰC TẾ SỬ DỤNG PHƯƠNG THỨC MỞ RỘNG
-    async function scanBluetoothDevice() {
-        logMessage("Đang yêu cầu kích hoạt bộ quét thiết bị...");
-        if (!navigator.bluetooth) {
-            logMessage("LỖI: Trình duyệt này hoàn toàn không hỗ trợ Web Bluetooth API.");
-            alert("Trình duyệt không hỗ trợ Bluetooth hoặc chưa bật quyền!");
-            return;
-        }
+    // ĐỒNG BỘ THỜI GIAN TRÊN LƯỚI THIẾT KẾ WEB
+    setInterval(() => {
+        let now = new Date();
+        currentHour = String(now.getHours()).padStart(2, '0');
+        currentMin = String(now.getMinutes()).padStart(2, '0');
+        renderTemplate();
+    }, 1000);
 
+    // HÀM XỬ LÝ KHI CHẠM VÀO Ô LƯỚI ẢNH MẪU
+    function selectTemplateVisual(type) {
+        activeTemplateType = type;
+        
+        // Gỡ bỏ viền xanh ở tất cả các thẻ
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Thêm viền xanh làm nổi bật thẻ vừa chọn
+        document.getElementById('card-' + type).classList.add('selected');
+        
+        logMessage("Đã chọn giao diện trực quan: Mẫu " + type.toUpperCase());
+        renderTemplate(); // Vẽ lại khung canvas lớn
+    }
+
+    // HÀM VẼ GIAO DIỆN LỚN THEO MẪU ĐÃ CHỌN
+    function renderTemplate() {
+        const canvas = document.getElementById('canvas-preview');
+        if(!canvas) return;
+        const temp = document.getElementById('temp-input').value + "°C";
+        const date = document.getElementById('date-input').value;
+        const lunar = document.getElementById('lunar-input').value;
+        const day = document.getElementById('day-input').value;
+        
+        let volDisplay = "🔋 " + hardwareVoltageValue;
+
+        if (activeTemplateType === 'flip') {
+            canvas.innerHTML = `
+                <div class="top-info"><span>${day}</span><span>${date}</span><span>${volDisplay}</span></div>
+                <div class="flip-layout">
+                    <div class="flip-card">${currentHour[0]}</div><div class="flip-card">${currentHour[1]}</div>
+                    <span style="font-size:30px;font-weight:bold;align-self:center;">:</span>
+                    <div class="flip-card">${currentMin[0]}</div><div class="flip-card">${currentMin[1]}</div>
+                </div>
+                <div class="sub-info"><span>${lunar}</span><span>${temp}</span></div>`;
+        } 
+        else if (activeTemplateType === 'calendar') {
+            let justDate = date.split('/')[0] || "05";
+            canvas.innerHTML = `
+                <div class="top-info" style="justify-content:center; font-size:14px;">${day} - ${date.split('/')[1]}/${date.split('/')[2]}</div>
+                <div class="huge-date">${justDate}</div>
+                <div class="sub-info"><span>${lunar}</span><span>Giờ: ${currentHour}:${currentMin}</span><span>${volDisplay}</span></div>`;
+        } 
+        else if (activeTemplateType === 'modern') {
+            canvas.innerHTML = `
+                <div style="text-align:center; font-size:20px; font-weight:bold; margin-top:10px;">${currentHour}:${currentMin}</div>
+                <div style="text-align:center; font-size:13px; margin:10px 0; background:#000; color:#fff; padding:3px; border-radius:3px;">${day} | ${date}</div>
+                <div class="sub-info"><span>${lunar}</span><span>Nguồn cấp: ${volDisplay}</span></div>`;
+        } 
+        else if (activeTemplateType === 'lunar') {
+            canvas.innerHTML = `
+                <div class="top-info"><span>DƯƠNG LỊCH</span><span>${currentHour}:${currentMin}</span></div>
+                <div style="font-size:16px; font-weight:bold; margin:5px 0;">Ngày: ${date} (${day})</div>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-size:18px; font-weight:bold; color:#f44336; margin-bottom:5px;">${lunar}</div>
+                <div class="sub-info"><span>Điện áp: ${volDisplay}</span><span>${temp}</span></div>`;
+        }
+    }
+
+    // KẾT NỐI BLUETOOTH
+    async function scanBluetoothDevice() {
+        logMessage("Đang quét thiết bị...");
+        if (!navigator.bluetooth) { alert("Trình duyệt không hỗ trợ Bluetooth BLE!"); return; }
         try {
-            // Sử dụng cấu hình nới lỏng tối đa để ép buộc Chrome hiển thị giao diện chọn thiết bị
             bleDevice = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
                 optionalServices: [UART_SERVICE_UUID]
             });
-
-            logMessage("Đã chọn thiết bị: " + bleDevice.name);
-            logMessage("Đang kết nối tới cổng GATT...");
             const server = await bleDevice.gatt.connect();
-            
-            logMessage("Đang lấy dịch vụ GATT...");
             const service = await server.getPrimaryService(UART_SERVICE_UUID);
             bleCharacteristic = await service.getCharacteristic(UART_TX_CHAR_UUID);
             
-            logMessage("KẾT NỐI THÀNH CÔNG! Thiết bị đã sẵn sàng nhận lệnh.");
+            logMessage("Đã mở cổng đồng bộ tín hiệu từ mạch...");
+            await bleCharacteristic.startNotifications();
+            bleCharacteristic.addEventListener('characteristicvaluechanged', handleIncomingData);
+            
+            logMessage("KẾT NỐI THÀNH CÔNG!");
             alert("Kết nối Bluetooth thành công!");
-        } catch (error) {
-            logMessage("Yêu cầu quét bị hủy hoặc gặp lỗi: " + error.message);
+        } catch (error) { logMessage("Lỗi kết nối: " + error.message); }
+    }
+
+    function handleIncomingData(event) {
+        let value = event.target.value;
+        let decoder = new TextDecoder('utf-8');
+        let receivedString = decoder.decode(value).trim();
+        logMessage("Tín hiệu từ mạch: " + receivedString);
+
+        if (receivedString.toUpperCase().includes("V")) {
+            let cleanVol = receivedString.replace("VOL:", "").trim(); 
+            hardwareVoltageValue = cleanVol;
+            document.getElementById('real-voltage-txt').innerText = "Mạch đang chạy ở mức: " + cleanVol;
+            renderTemplate();
         }
     }
 
-    async function sendCommand(action) {
-        if (!bleCharacteristic) {
-            logMessage("Lỗi: Chưa có kết nối Bluetooth hoạt động.");
-            alert("Vui lòng kết nối Bluetooth trước!");
-            return;
-        }
+    // NẠP GIAO DIỆN MẪU XUỐNG THIẾT BỊ
+    async function uploadTemplateToDevice() {
+        if (!bleCharacteristic) { alert("Vui lòng kết nối Bluetooth trước khi nạp!"); return; }
+        const temp = document.getElementById('temp-input').value;
+        const date = document.getElementById('date-input').value;
+        const lunar = document.getElementById('lunar-input').value;
+        const day = document.getElementById('day-input').value;
+
+        // Gửi thông số mẫu đang kích hoạt kèm dữ liệu text tinh chỉnh xuống mạch
+        let commandPacket = `UPDATE_TEMPLATE|TYPE:${activeTemplateType}|DAY:${day}|DATE:${date}|LUNAR:${lunar}|TEMP:${temp}|VOL:${hardwareVoltageValue}`;
         try {
             let encoder = new TextEncoder();
-            let dataBuffer = encoder.encode(action + '\n');
-            await bleCharacteristic.writeValue(dataBuffer);
-            logMessage("Đã gửi thành công lệnh: " + action);
-        } catch (error) {
-            logMessage("Lỗi gửi dữ liệu: " + error.message);
-        }
+            await bleCharacteristic.writeValue(encoder.encode(commandPacket + '\n'));
+            logMessage(`Đã đẩy gói tin cấu hình mẫu [${activeTemplateType.toUpperCase()}] xuống ESP32.`);
+            alert("Đã áp dụng mẫu giao diện mới!");
+        } catch (error) { logMessage("Lỗi: " + error.message); }
     }
 
     function reconnectDevice() {
-        if (bleDevice && bleDevice.gatt.connected) {
-            logMessage("Thiết bị đang được kết nối sẵn.");
-        } else if (bleDevice) {
-            logMessage("Đang thử kết nối lại...");
-            bleDevice.gatt.connect().then(() => logMessage("Đã kết nối lại!")).catch(e => logMessage("Thất bại: " + e.message));
-        } else {
-            logMessage("Chưa từng kết nối với thiết bị nào trước đây.");
+        if (bleDevice) {
+            bleDevice.gatt.connect().then(() => logMessage("Đã kết nối lại!")).catch(e => logMessage("Thất bại"));
         }
     }
-
-    function syncTime() {
-        let now = new Date();
-        document.getElementById('btn-time-sync').innerText = `Thời gian thiết lập: ${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.toTimeString().split(' ')[0]}`;
-        logMessage("Đã cập nhật bộ đếm thời gian hệ thống.");
-    }
 </script>
-
 </body>
 </html>
