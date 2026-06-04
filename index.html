@@ -83,17 +83,18 @@
             border: 3px solid #000;
             border-radius: 8px;
             background-color: var(--bg-preview);
-            min-height: 230px;
+            min-height: 250px;
             padding: 10px;
             box-sizing: border-box;
             margin-bottom: 15px;
         }
         
-        /* Cấu trúc chung cho các Mẫu */
+        /* Cấu trúc chung cho các Mẫu đảm bảo luôn có khoảng trống danh ngôn dưới đáy */
         .template-box {
             display: flex;
             flex-direction: column;
             height: 100%;
+            min-height: 225px;
             justify-content: space-between;
         }
         .header-row, .footer-row {
@@ -103,14 +104,14 @@
             font-weight: bold;
             border-bottom: 1px solid #000;
             padding-bottom: 3px;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         .footer-row {
             border-bottom: none;
             border-top: 1px solid #000;
             padding-top: 3px;
-            margin-top: 8px;
-            margin-bottom: 0;
+            margin-top: 5px;
+            margin-bottom: 5px;
         }
         .divider {
             border: 0;
@@ -124,7 +125,7 @@
             justify-content: center;
             align-items: center;
             gap: 4px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
         .flip-unit {
             background: #000;
@@ -228,18 +229,20 @@
         .minute-hand { width: 2px; height: 35px; }
         .second-hand { width: 1px; height: 38px; background-color: red; }
 
-        /* Vùng hiển thị Câu nói dưới đáy Mẫu 5 */
-        .calendar-footer-quote {
+        /* VÀNG HIỂN THỊ DANH NGÔN CHUNG CHO TẤT CẢ CÁC MẪU */
+        .global-footer-quote-zone {
             width: 100%;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
             font-style: italic;
             font-weight: bold;
             color: #000;
-            padding-top: 2px;
+            padding-top: 4px;
+            border-top: 1px solid #000;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-top: auto;
         }
 
         /* Ô nhập liệu phụ ở dưới đáy trang web */
@@ -349,12 +352,13 @@
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // Định danh UUID mặc định (Có thể thay đổi tùy mạch nhận)
+        // Định danh UUID mặc định
         const BLE_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
         const BLE_CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
         let bluetoothDevice = null;
         let bleCharacteristic = null;
 
+        // Kho danh ngôn thay đổi tự động theo ngày trong tháng
         const dailyQuotes = [
             "Hành trình vạn dặm bắt đầu từ một bước chân.",
             "Hôm nay là một ngày tuyệt vời để cố gắng.",
@@ -365,7 +369,28 @@
             "Hãy mỉm cười, cả thế giới sẽ mỉm cười với bạn.",
             "Lòng biết ơn là nguồn gốc của hạnh phúc vững bền.",
             "Thành công đến từ những nỗ lực nhỏ mỗi ngày.",
-            "Hãy làm việc khi người khác đang mơ mộng."
+            "Hãy làm việc khi người khác đang mơ mộng.",
+            "Không bao giờ là quá muộn để bắt đầu lại.",
+            "Thất bại là mẹ của thành công.",
+            "Hãy sống như hôm nay là ngày cuối cùng.",
+            "Tự tin là chìa khóa đầu tiên của thành công.",
+            "Sự cố gắng luôn được đền đáp xứng đáng.",
+            "Cuộc sống là không ngừng vươn lên.",
+            "Suy nghĩ tích cực, đời sẽ nhẹ nhàng hơn.",
+            "Hãy là phiên bản tốt nhất của chính mình.",
+            "Mọi khó khăn đều là thử thách giúp ta lớn lên.",
+            "Hạnh phúc là một lựa chọn, không phải kết quả.",
+            "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.",
+            "Hãy đi theo ánh sáng của ước mơ.",
+            "Lao động hăng say, vận may sẽ đến.",
+            "Gieo hành vi, gặt thói quen, gặt số phận.",
+            "Không gì là không thể với người biết cố gắng.",
+            "Thời gian là tài sản quý giá nhất.",
+            "Hãy trân trọng từng phút giây hiện tại.",
+            "Mỗi ngày tốt đẹp bắt đầu bằng tâm thế tốt.",
+            "Yêu thương trao đi là yêu thương giữ được mãi.",
+            "Luôn hướng về phía trước, mặt trời ở sau lưng.",
+            "Bình yên đến từ sự an yên trong tâm hồn."
         ];
 
         function logToSystem(text) {
@@ -466,26 +491,33 @@
 
             let templateHTML = "";
             let currentTemp = document.getElementById("input-nhiet-do") ? document.getElementById("input-nhiet-do").value : 30;
+            
+            // Lấy câu danh ngôn tự động dựa trên ngày hiện tại trong tháng
+            let quoteIndex = (timeData.dayRaw - 1) % dailyQuotes.length;
+            let currentQuoteText = `"${dailyQuotes[quoteIndex]}"`;
 
             switch (currentTemplateIndex) {
                 case 1:
                     templateHTML = `
                         <div class="template-box">
-                            <div class="header-row">
-                                <span>${timeData.day} - ${timeData.date}</span>
-                                <span>🔋 3.7V</span>
+                            <div>
+                                <div class="header-row">
+                                    <span>${timeData.day} - ${timeData.date}</span>
+                                    <span>🔋 3.7V</span>
+                                </div>
+                                <div class="flip-clock-display">
+                                    <div class="flip-unit">${timeData.hour[0]}</div>
+                                    <div class="flip-unit">${timeData.hour[1]}</div>
+                                    <div class="flip-separator">:</div>
+                                    <div class="flip-unit">${timeData.min[0]}</div>
+                                    <div class="flip-unit">${timeData.min[1]}</div>
+                                </div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
+                                </div>
                             </div>
-                            <div class="flip-clock-display">
-                                <div class="flip-unit">${timeData.hour[0]}</div>
-                                <div class="flip-unit">${timeData.hour[1]}</div>
-                                <div class="flip-separator">:</div>
-                                <div class="flip-unit">${timeData.min[0]}</div>
-                                <div class="flip-unit">${timeData.min[1]}</div>
-                            </div>
-                            <div class="footer-row">
-                                <span>🌙 ${timeData.lunar}</span>
-                                <span>🌡️ ${currentTemp}°C</span>
-                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
@@ -493,90 +525,96 @@
                 case 2:
                     templateHTML = `
                         <div class="template-box" style="text-align:center;">
-                            <div class="header-row">${timeData.day} - ${timeData.date}</div>
-                            <div style="font-size:75px; font-weight:bold; margin:10px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
-                            <div class="footer-row">
-                                <span>🌙 ${timeData.lunar}</span>
-                                <span>${timeData.hour}:${timeData.min}</span>
+                            <div>
+                                <div class="header-row">${timeData.day} - ${timeData.date}</div>
+                                <div style="font-size:65px; font-weight:bold; margin:5px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🕒 ${timeData.hour}:${timeData.min}</span>
+                                </div>
                             </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
 
                 case 3:
                     templateHTML = `
-                        <div class="template-box" style="align-items:center; justify-content:center; gap:10px;">
-                            <div style="font-size:50px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
-                            <div style="font-size:15px; font-weight:bold; border-top:2px solid #000; padding-top:5px; width:80%; text-align:center;">
-                                ${timeData.day} | ${timeData.date}
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:6px; margin-top:10px;">
+                                <div style="font-size:46px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
+                                <div style="font-size:14px; font-weight:bold; border-top:1px solid #000; padding-top:4px; width:140px; text-align:center;">
+                                    ${timeData.day} | ${timeData.date}
+                                </div>
+                                <div style="font-size:13px;">🌙 ${timeData.lunar}</div>
                             </div>
-                            <div style="font-size:14px;">🌙 ${timeData.lunar}</div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
 
                 case 4:
                     templateHTML = `
-                        <div class="template-box" style="justify-content:center; gap:15px; text-align:center;">
-                            <div style="font-size:16px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
-                            <div style="font-size:22px; font-weight:bold; color:red; border:2px dashed red; padding:8px; border-radius:4px; width:85%; margin:0 auto;">
-                                ${timeData.lunar.toUpperCase()}
+                        <div class="template-box" style="text-align:center;">
+                            <div style="display:flex; flex-direction:column; justify-content:center; flex:1; gap:10px;">
+                                <div style="font-size:15px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
+                                <div style="font-size:20px; font-weight:bold; color:red; border:2px dashed red; padding:6px; border-radius:4px; width:85%; margin:0 auto;">
+                                    ${timeData.lunar.toUpperCase()}
+                                </div>
+                                <div style="font-size:13px; font-weight:bold;">Giờ hệ thống: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
                             </div>
-                            <div style="font-size:14px;">Giờ: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
 
                 case 5:
-                    let footerText = "";
-                    let quoteIndex = timeData.dayRaw % dailyQuotes.length;
-                    footerText = `"${dailyQuotes[quoteIndex]}"`;
-
                     templateHTML = `
                         <div class="template-box">
-                            <div class="header-row">
-                                <span>Tháng ${timeData.month} / ${timeData.year}</span>
-                                <span>🌡️ ${currentTemp}°C</span>
-                            </div>
-                            
-                            <div class="month-split-container">
-                                <div class="calendar-matrix-left">
-                                    ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
+                            <div>
+                                <div class="header-row">
+                                    <span>Tháng ${timeData.month} / ${timeData.year}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
                                 </div>
-                                <div class="analog-clock-right">
-                                    <div class="analog-dial">
-                                        <div class="hour-mark m-12">12</div>
-                                        <div class="hour-mark m-3">3</div>
-                                        <div class="hour-mark m-6">6</div>
-                                        <div class="hour-mark m-9">9</div>
-                                        <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
-                                        <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
-                                        <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                
+                                <div class="month-split-container">
+                                    <div class="calendar-matrix-left">
+                                        ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
+                                    </div>
+                                    <div class="analog-clock-right">
+                                        <div class="analog-dial">
+                                            <div class="hour-mark m-12">12</div>
+                                            <div class="hour-mark m-3">3</div>
+                                            <div class="hour-mark m-6">6</div>
+                                            <div class="hour-mark m-9">9</div>
+                                            <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                            <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                            <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <hr class="divider">
-                            <div class="calendar-footer-quote">
-                                ${footerText}
-                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
 
                 case 6:
                     templateHTML = `
-                        <div class="template-box" style="align-items:center; justify-content:center;">
-                            <div class="analog-dial" style="width:160px; height:160px;">
-                                <div class="hour-mark m-12" style="font-size:14px;">12</div>
-                                <div class="hour-mark m-3" style="font-size:14px;">3</div>
-                                <div class="hour-mark m-6" style="font-size:14px;">6</div>
-                                <div class="hour-mark m-9" style="font-size:14px;">9</div>
-                                <div class="hand hour-hand" style="width:4px; height:40px; transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
-                                <div class="hand minute-hand" style="width:2.5px; height:58px; transform: rotate(${timeData.minRaw * 6}deg)"></div>
-                                <div class="hand second-hand" style="width:1px; height:65px; transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:5px;">
+                                <div class="analog-dial" style="width:130px; height:130px;">
+                                    <div class="hour-mark m-12" style="font-size:12px;">12</div>
+                                    <div class="hour-mark m-3" style="font-size:12px;">3</div>
+                                    <div class="hour-mark m-6" style="font-size:12px;">6</div>
+                                    <div class="hour-mark m-9" style="font-size:12px;">9</div>
+                                    <div class="hand hour-hand" style="width:4px; height:32px; transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                    <div class="hand minute-hand" style="width:2.5px; height:48px; transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                    <div class="hand second-hand" style="width:1px; height:52px; transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                </div>
+                                <div style="margin-top:4px; font-weight:bold; font-size:13px;">🌙 ${timeData.lunar}</div>
                             </div>
-                            <div style="margin-top:8px; font-weight:bold; font-size:13px;">🌙 ${timeData.lunar}</div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
                         </div>
                     `;
                     break;
@@ -585,13 +623,12 @@
             previewContainer.innerHTML = templateHTML;
         }
 
-        // CHỈNH SỬA QUAN TRỌNG: Mở rộng bộ lọc quét để chấp nhận mọi thiết bị Bluetooth gần đó
         async function connectBluetooth() {
             try {
                 logToSystem("Đang mở cửa sổ chọn thiết bị...");
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
-                    optionalServices: [BLE_SERVICE_UUID] // Đăng ký service để chuẩn bị giao tiếp
+                    optionalServices: [BLE_SERVICE_UUID]
                 });
 
                 logToSystem(`Đang kết nối tới: ${bluetoothDevice.name || "Thiết bị không tên"}`);
@@ -619,7 +656,7 @@
                 const t = getPhoneTimeDetails();
                 let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
 
-                // Gói dữ liệu Byte truyền xuống mạch nhận
+                // Gói dữ liệu Byte truyền xuống mạch phần cứng nhận diện
                 let dataBuffer = new Uint8Array([
                     0xAA, 
                     currentTemplateIndex,
