@@ -3,96 +3,713 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper 2.9" - Đầy Đủ</title>
+    <title>Thẻ E-Paper 2.9" - Đồng Bộ Mặt Đồng Hồ</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
-    <style>
-        /* Nút Bluetooth mới */
-        .btn-conn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; text-align: center; font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
-        .state-idle { background-color: #4CAF50; }
-        .state-connecting { background-color: #FFC107; color: #333; }
-        .state-connected { background-color: #2196F3; }
-        .state-error { background-color: #F44336; }
 
-        /* Style gốc của anh */
-        body { font-family: Arial, sans-serif; margin: 10px; background-color: #f9f9f9; }
-        .section-title { font-size: 16px; font-weight: bold; margin: 15px 0; padding-left: 8px; border-left: 4px solid #4CAF50; }
-        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .template-card-item { background: white; border: 2px solid #e0e0e0; border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; }
-        .selected-active { border-color: #2196F3; background-color: #f0f7ff; }
-        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background: #fff; min-height: 250px; padding: 10px; margin-bottom: 15px; }
-        .btn-sync { width: 100%; padding: 15px; background: #2196F3; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .input-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
-        .input-row input { width: 60%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --blue-color: #2196F3;
+            --border-color: #ccc;
+            --bg-preview: #fff;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-green { background-color: var(--primary-color); color: white; border: none; }
+        .btn-outline { background-color: white; color: #333; }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+            margin: 15px 0 10px 0;
+        }
+        
+        /* Danh sách các ô chọn mẫu mặt đồng hồ */
+        .template-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .template-card-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .template-card-item.selected-active {
+            border-color: var(--blue-color);
+            background-color: #f0f7ff;
+        }
+        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #555; }
+        .card-demo-box {
+            border: 1px solid #ddd;
+            padding: 15px 5px;
+            border-radius: 4px;
+            background: #fff;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER 2.9 INCH) */
+        #khung-xem-truoc {
+            border: 3px solid #000;
+            border-radius: 8px;
+            background-color: var(--bg-preview);
+            min-height: 250px;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        
+        /* Cấu trúc chung cho các Mẫu đảm bảo luôn có khoảng trống danh ngôn dưới đáy */
+        .template-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 225px;
+            justify-content: space-between;
+        }
+        .header-row, .footer-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
+            margin-bottom: 5px;
+        }
+        .footer-row {
+            border-bottom: none;
+            border-top: 1px solid #000;
+            padding-top: 3px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        .divider {
+            border: 0;
+            border-top: 1px solid #000;
+            margin: 5px 0;
+        }
+        
+        /* Style Mẫu 1: Đồng hồ lật dài */
+        .flip-clock-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            margin: 15px 0;
+        }
+        .flip-unit {
+            background: #000;
+            color: #fff;
+            font-size: 45px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 4px;
+        }
+        .flip-separator {
+            font-size: 35px;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Style Mẫu 5: Cấu trúc chia đôi Lịch tháng | Kim tròn */
+        .month-split-container {
+            display: flex;
+            flex: 1;
+            gap: 12px;
+            align-items: center;
+            min-height: 125px;
+        }
+        .calendar-matrix-left { 
+            flex: 1.3; 
+        }
+        .analog-clock-right {
+            flex: 0.7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Lưới lịch tháng */
+        .grid-week-header, .grid-days-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+        }
+        .grid-week-header { 
+            font-size: 11px; 
+            font-weight: bold; 
+            border-bottom: 1px dashed #000; 
+            padding-bottom: 2px; 
+        }
+        .grid-days-body { 
+            row-gap: 4px; 
+            margin-top: 4px; 
+        }
+        
+        /* Ô ngày gồm Dương lịch trên và Âm lịch dưới */
+        .day-item { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 0;
+        }
+        .day-item .solar-day {
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+        }
+        .day-item .lunar-sub-day {
+            font-size: 8px;
+            color: #555;
+            margin-top: 0px;
+        }
+        .day-item.empty { min-height: 20px; }
+        .active-today {
+            background-color: #000;
+            border-radius: 4px;
+        }
+        .active-today .solar-day, .active-today .lunar-sub-day {
+            color: #fff !important;
+        }
+        
+        /* Giao diện Mặt đồng hồ kim tròn */
+        .analog-dial {
+            width: 95px;
+            height: 95px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            position: relative;
+        }
+        .hour-mark { position: absolute; font-size: 9px; font-weight: bold; }
+        .m-12 { top: 1px; left: 50%; transform: translateX(-50%); }
+        .m-3 { right: 3px; top: 50%; transform: translateY(-50%); }
+        .m-6 { bottom: 1px; left: 50%; transform: translateX(-50%); }
+        .m-9 { left: 3px; top: 50%; transform: translateY(-50%); }
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            background-color: #000;
+            transform-origin: bottom center;
+            border-radius: 1px;
+        }
+        .hour-hand { width: 3px; height: 25px; }
+        .minute-hand { width: 2px; height: 35px; }
+        .second-hand { width: 1px; height: 38px; background-color: red; }
+
+        /* VÀNG HIỂN THỊ DANH NGÔN CHUNG CHO TẤT CẢ CÁC MẪU */
+        .global-footer-quote-zone {
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            font-style: italic;
+            font-weight: bold;
+            color: #000;
+            padding-top: 4px;
+            border-top: 1px solid #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: auto;
+        }
+
+        /* Ô nhập liệu phụ ở dưới đáy trang web */
+        .adjustment-box {
+            margin-top: 15px;
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .input-row input {
+            width: 60%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        /* Trạng thái Log hệ thống */
+        .log-box {
+            margin-top: 15px;
+            background: #222;
+            color: #22ff22;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
 
-    <button id="btn-bluetooth" class="btn-conn state-idle">Kết nối Bluetooth</button>
-
-    <div class="section-title">Chọn mẫu mặt đồng hồ:</div>
-    <div class="template-grid" id="grid-templates">
-        <div class="template-card-item" onclick="selectTemplate(1)">Mẫu 1: Lật Dài</div>
-        <div class="template-card-item" onclick="selectTemplate(2)">Mẫu 2: Lịch Số</div>
-        <div class="template-card-item" onclick="selectTemplate(3)">Mẫu 3: Số To</div>
-        <div class="template-card-item" onclick="selectTemplate(4)">Mẫu 4: Âm Dương</div>
-        <div class="template-card-item" onclick="selectTemplate(5)">Mẫu 5: Tháng</div>
-        <div class="template-card-item" onclick="selectTemplate(6)">Mẫu 6: Kim Tròn</div>
+    <div class="btn-group">
+        <button class="btn btn-green" id="btn-sync-hardware">Kết nối Bluetooth</button>
+        <button class="btn btn-outline">Kho Mẫu Đồng Hồ</button>
     </div>
 
-    <div class="section-title">Khung Xem Trước Thực Tế:</div>
+    <div class="section-title">Chạm Trực Tiếp Để Chọn Mặt Màn Hình</div>
+    
+    <div class="template-grid">
+        <div class="template-card-item selected-active">
+            <div class="card-title">Mẫu 1: Đồng Hồ Lật Dài</div>
+            <div class="card-demo-box" style="background:#000; color:#fff; font-size:14px;">12:30</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 2: Lịch Lớn Tối Giản</div>
+            <div class="card-demo-box" style="font-size:22px;">05</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 3: Số Hiện Đại To</div>
+            <div class="card-demo-box">12:30</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 4: Lịch Âm Dương Rõ</div>
+            <div class="card-demo-box" style="color:red; font-size:11px;">ÂM LỊCH</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 5: Lịch 1 Tháng (Âm-Dương)</div>
+            <div class="card-demo-box" style="font-size:11px;">📅 Lịch Tháng + 🕒</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 6: Đồng Hồ Kim Tròn</div>
+            <div class="card-demo-box">🕒</div>
+        </div>
+    </div>
+
+    <div class="section-title">Khung Xem Trước Thực Tế</div>
+    
     <div id="khung-xem-truoc"></div>
 
-    <button class="btn-sync" id="btn-transfer-data">ĐỒNG BỘ GIỜ ĐIỆN THOẠI XUỐNG MÀN HÌNH</button>
+    <button class="btn btn-green" id="btn-transfer-data" style="width:100%; margin-top:5px; margin-bottom:15px; background-color: var(--blue-color);">
+        ĐỒNG BỘ GIỜ ĐIỆN THOẠI XUỐNG MÀN HÌNH
+    </button>
 
-    <div style="margin-top:20px;">
-        <div class="input-row"><label>Dương Lịch:</label><input type="text" id="input-duong-lich" readonly></div>
-        <div class="input-row"><label>Âm Lịch:</label><input type="text" id="input-am-lich" readonly></div>
-        <div class="input-row"><label>Hiệu chỉnh nhiệt độ (°C):</label><input type="number" id="input-nhiet-do" value="30"></div>
+    <div class="adjustment-box">
+        <div class="input-row">
+            <label>Dương Lịch:</label>
+            <input type="text" id="input-duong-lich" readonly>
+        </div>
+        <div class="input-row">
+            <label>Âm Lịch:</label>
+            <input type="text" id="input-am-lich" readonly>
+        </div>
+        <div class="input-row">
+            <label>Thứ hiện tại:</label>
+            <input type="text" id="input-thu" readonly>
+        </div>
+        <div class="input-row">
+            <label>Hiệu chỉnh nhiệt độ (°C):</label>
+            <input type="number" id="input-nhiet-do" value="30">
+        </div>
+    </div>
+
+    <div class="log-box" id="system-log">
+        Hệ thống: Sẵn sàng nạp dữ liệu thời gian thực.<br>
+        • Chưa kết nối thiết bị Bluetooth.
     </div>
 
     <script>
-        const btnBluetooth = document.getElementById('btn-bluetooth');
-        let bleChar = null;
+        const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+        let currentTemplateIndex = 1; 
 
-        // Hàm trạng thái nút
-        function updateBtnState(state) {
-            btnBluetooth.className = "btn-conn";
-            if(state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
-            else if(state === 'connecting') { btnBluetooth.classList.add('state-connecting'); btnBluetooth.innerText = "🔄 Đang kết nối..."; }
-            else if(state === 'connected') { btnBluetooth.classList.add('state-connected'); btnBluetooth.innerText = "✅ Đã kết nối"; }
-            else if(state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
+        // Định danh UUID mặc định
+        const BLE_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+        const BLE_CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+        let bluetoothDevice = null;
+        let bleCharacteristic = null;
+
+        // Kho danh ngôn thay đổi tự động theo ngày trong tháng
+        const dailyQuotes = [
+            "Hành trình vạn dặm bắt đầu từ một bước chân.",
+            "Hôm nay là một ngày tuyệt vời để cố gắng.",
+            "Nơi nào có ý chí, nơi đó có con đường.",
+            "Sống là chính mình, bình thường chứ không tầm thường.",
+            "Kiên trì là khác biệt giữa thành công và thất bại.",
+            "Mỗi ngày mới là một cơ hội để viết tiếp ước mơ.",
+            "Hãy mỉm cười, cả thế giới sẽ mỉm cười với bạn.",
+            "Lòng biết ơn là nguồn gốc của hạnh phúc vững bền.",
+            "Thành công đến từ những nỗ lực nhỏ mỗi ngày.",
+            "Hãy làm việc khi người khác đang mơ mộng.",
+            "Không bao giờ là quá muộn để bắt đầu lại.",
+            "Thất bại là mẹ của thành công.",
+            "Hãy sống như hôm nay là ngày cuối cùng.",
+            "Tự tin là chìa khóa đầu tiên của thành công.",
+            "Sự cố gắng luôn được đền đáp xứng đáng.",
+            "Cuộc sống là không ngừng vươn lên.",
+            "Suy nghĩ tích cực, đời sẽ nhẹ nhàng hơn.",
+            "Hãy là phiên bản tốt nhất của chính mình.",
+            "Mọi khó khăn đều là thử thách giúp ta lớn lên.",
+            "Hạnh phúc là một lựa chọn, không phải kết quả.",
+            "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.",
+            "Hãy đi theo ánh sáng của ước mơ.",
+            "Lao động hăng say, vận may sẽ đến.",
+            "Gieo hành vi, gặt thói quen, gặt số phận.",
+            "Không gì là không thể với người biết cố gắng.",
+            "Thời gian là tài sản quý giá nhất.",
+            "Hãy trân trọng từng phút giây hiện tại.",
+            "Mỗi ngày tốt đẹp bắt đầu bằng tâm thế tốt.",
+            "Yêu thương trao đi là yêu thương giữ được mãi.",
+            "Luôn hướng về phía trước, mặt trời ở sau lưng.",
+            "Bình yên đến từ sự an yên trong tâm hồn."
+        ];
+
+        function logToSystem(text) {
+            const logBox = document.getElementById("system-log");
+            if(logBox) {
+                logBox.innerHTML += `<br>• ${text}`;
+                logBox.scrollTop = logBox.scrollHeight;
+            }
         }
 
-        // Kết nối Bluetooth
-        btnBluetooth.addEventListener('click', async () => {
-            updateBtnState('connecting');
+        function getPhoneTimeDetails() {
+            let now = new Date();
+            let hh = now.getHours();
+            let mm = now.getMinutes();
+            let ss = now.getSeconds();
+            
+            let hhStr = String(hh).padStart(2, '0');
+            let mmStr = String(mm).padStart(2, '0');
+            let ssStr = String(ss).padStart(2, '0');
+            let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
+            let dayStr = daysOfWeek[now.getDay()];
+
+            let lunarText = "Âm Lịch"; 
+            let lunarDayStr = "";
+
+            if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+                try {
+                    let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                    lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+                    lunarText = `Âm Lịch ${lunarDayStr}`;
+                } catch (e) {
+                    lunarText = "Âm Lịch --/--";
+                }
+            } else {
+                lunarText = "Âm Lịch --/--"; 
+            }
+
+            return { 
+                year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(),
+                hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(),
+                hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText
+            };
+        }
+
+        function generateCalendarGrid(year, month, currentDay) {
+            let firstDay = new Date(year, month - 1, 1).getDay();
+            let daysInMonth = new Date(year, month, 0).getDate();
+            
+            let html = `
+                <div class="grid-week-header">
+                    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+                </div>
+                <div class="grid-days-body">
+            `;
+            
+            let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+            for (let i = 0; i < startOffset; i++) { 
+                html += `<div class="day-item empty"></div>`; 
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                let isTodayClass = (day === currentDay) ? "day-item active-today" : "day-item";
+                let subLunarText = "--"; 
+
+                if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+                    try {
+                        let cellLunar = LunarCalendar.solarToLunar(year, month, day);
+                        if (cellLunar.lunarDay === 1) {
+                            subLunarText = `${String(cellLunar.lunarDay).padStart(2, '0')}/${String(cellLunar.lunarMonth).padStart(2, '0')}`;
+                        } else {
+                            subLunarText = String(cellLunar.lunarDay).padStart(2, '0');
+                        }
+                    } catch (e) {
+                        subLunarText = "--";
+                    }
+                }
+                
+                html += `
+                    <div class="${isTodayClass}">
+                        <span class="solar-day">${day}</span>
+                        <span class="lunar-sub-day">${subLunarText}</span>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function renderTemplate() {
+            const timeData = getPhoneTimeDetails();
+            
+            if(document.getElementById("input-duong-lich")) document.getElementById("input-duong-lich").value = timeData.date;
+            if(document.getElementById("input-am-lich")) document.getElementById("input-am-lich").value = timeData.lunar;
+            if(document.getElementById("input-thu")) document.getElementById("input-thu").value = timeData.day;
+
+            const previewContainer = document.getElementById("khung-xem-truoc");
+            if (!previewContainer) return;
+
+            let templateHTML = "";
+            let currentTemp = document.getElementById("input-nhiet-do") ? document.getElementById("input-nhiet-do").value : 30;
+            
+            // Lấy câu danh ngôn tự động dựa trên ngày hiện tại trong tháng
+            let quoteIndex = (timeData.dayRaw - 1) % dailyQuotes.length;
+            let currentQuoteText = `"${dailyQuotes[quoteIndex]}"`;
+
+            switch (currentTemplateIndex) {
+                case 1:
+                    templateHTML = `
+                        <div class="template-box">
+                            <div>
+                                <div class="header-row">
+                                    <span>${timeData.day} - ${timeData.date}</span>
+                                    <span>🔋 3.7V</span>
+                                </div>
+                                <div class="flip-clock-display">
+                                    <div class="flip-unit">${timeData.hour[0]}</div>
+                                    <div class="flip-unit">${timeData.hour[1]}</div>
+                                    <div class="flip-separator">:</div>
+                                    <div class="flip-unit">${timeData.min[0]}</div>
+                                    <div class="flip-unit">${timeData.min[1]}</div>
+                                </div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 2:
+                    templateHTML = `
+                        <div class="template-box" style="text-align:center;">
+                            <div>
+                                <div class="header-row">${timeData.day} - ${timeData.date}</div>
+                                <div style="font-size:65px; font-weight:bold; margin:5px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🕒 ${timeData.hour}:${timeData.min}</span>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 3:
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:6px; margin-top:10px;">
+                                <div style="font-size:46px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
+                                <div style="font-size:14px; font-weight:bold; border-top:1px solid #000; padding-top:4px; width:140px; text-align:center;">
+                                    ${timeData.day} | ${timeData.date}
+                                </div>
+                                <div style="font-size:13px;">🌙 ${timeData.lunar}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 4:
+                    templateHTML = `
+                        <div class="template-box" style="text-align:center;">
+                            <div style="display:flex; flex-direction:column; justify-content:center; flex:1; gap:10px;">
+                                <div style="font-size:15px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
+                                <div style="font-size:20px; font-weight:bold; color:red; border:2px dashed red; padding:6px; border-radius:4px; width:85%; margin:0 auto;">
+                                    ${timeData.lunar.toUpperCase()}
+                                </div>
+                                <div style="font-size:13px; font-weight:bold;">Giờ hệ thống: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 5:
+                    templateHTML = `
+                        <div class="template-box">
+                            <div>
+                                <div class="header-row">
+                                    <span>Tháng ${timeData.month} / ${timeData.year}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
+                                </div>
+                                
+                                <div class="month-split-container">
+                                    <div class="calendar-matrix-left">
+                                        ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
+                                    </div>
+                                    <div class="analog-clock-right">
+                                        <div class="analog-dial">
+                                            <div class="hour-mark m-12">12</div>
+                                            <div class="hour-mark m-3">3</div>
+                                            <div class="hour-mark m-6">6</div>
+                                            <div class="hour-mark m-9">9</div>
+                                            <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                            <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                            <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 6:
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:5px;">
+                                <div class="analog-dial" style="width:130px; height:130px;">
+                                    <div class="hour-mark m-12" style="font-size:12px;">12</div>
+                                    <div class="hour-mark m-3" style="font-size:12px;">3</div>
+                                    <div class="hour-mark m-6" style="font-size:12px;">6</div>
+                                    <div class="hour-mark m-9" style="font-size:12px;">9</div>
+                                    <div class="hand hour-hand" style="width:4px; height:32px; transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                    <div class="hand minute-hand" style="width:2.5px; height:48px; transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                    <div class="hand second-hand" style="width:1px; height:52px; transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                </div>
+                                <div style="margin-top:4px; font-weight:bold; font-size:13px;">🌙 ${timeData.lunar}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            previewContainer.innerHTML = templateHTML;
+        }
+
+        async function connectBluetooth() {
             try {
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true, 
-                    optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
+                logToSystem("Đang mở cửa sổ chọn thiết bị...");
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [BLE_SERVICE_UUID]
                 });
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
-                bleChar = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
-                updateBtnState('connected');
-                device.addEventListener('gattserverdisconnected', () => updateBtnState('error'));
-            } catch (err) { updateBtnState('error'); }
-        });
 
-        // Hàm gốc của anh
-        function selectTemplate(id) {
-            render(id);
+                logToSystem(`Đang kết nối tới: ${bluetoothDevice.name || "Thiết bị không tên"}`);
+                const server = await bluetoothDevice.gatt.connect();
+                
+                logToSystem("Đang tìm dịch vụ dữ liệu chính...");
+                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+                
+                bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
+                logToSystem("Kết nối thành công! Thiết bị đã sẵn sàng nhận dữ liệu.");
+                alert(`Đã kết nối thành công tới: ${bluetoothDevice.name || "Mạch E-Paper"}`);
+            } catch (error) {
+                logToSystem(`Lỗi: ${error.message}`);
+                alert(`Không thể kết nối: ${error.message}`);
+            }
         }
 
-        function render(id) {
-            // Dán lại code vẽ màn hình cũ của anh vào đây
-            document.getElementById('khung-xem-truoc').innerHTML = "Đang hiển thị mẫu " + id;
+        async function transferDataToHardware() {
+            if (!bleCharacteristic) {
+                alert("Vui lòng bấm nút 'Kết nối Bluetooth' trước khi đồng bộ!");
+                return;
+            }
+
+            try {
+                const t = getPhoneTimeDetails();
+                let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
+
+                // Gói dữ liệu Byte truyền xuống mạch phần cứng nhận diện
+                let dataBuffer = new Uint8Array([
+                    0xAA, 
+                    currentTemplateIndex,
+                    t.year % 100,
+                    t.month,
+                    t.dayRaw,
+                    t.hourRaw,
+                    t.minRaw,
+                    t.dayOfWeekRaw,
+                    tempVal,
+                    0xBB
+                ]);
+
+                logToSystem(`Đang gửi dữ liệu Mẫu ${currentTemplateIndex}...`);
+                await bleCharacteristic.writeValue(dataBuffer);
+                
+                logToSystem(`Đồng bộ gói tin thành công xuống mạch phần cứng!`);
+                alert("Đã đồng bộ thời gian và giao diện xuống màn hình thành công!");
+            } catch (error) {
+                logToSystem(`Lỗi truyền byte: ${error.message}`);
+                alert(`Gặp lỗi khi gửi dữ liệu: ${error.message}`);
+            }
         }
 
-        document.getElementById('btn-transfer-data').onclick = async () => {
-            if(!bleChar) { alert("Kết nối Bluetooth trước!"); return; }
-            // Dán lại code gửi dữ liệu xuống mạch của anh vào đây
-            alert("Đang đồng bộ...");
+        function setupTemplateSelection() {
+            const templates = document.querySelectorAll(".template-card-item");
+            templates.forEach((card, index) => {
+                card.addEventListener("click", () => {
+                    templates.forEach(c => c.classList.remove("selected-active"));
+                    card.classList.add("selected-active");
+                    currentTemplateIndex = index + 1;
+                    logToSystem(`Đã chọn Mẫu ${currentTemplateIndex}`);
+                    renderTemplate();
+                });
+            });
+        }
+
+        window.onload = function() {
+            setupTemplateSelection();
+            renderTemplate(); 
+            
+            setInterval(() => {
+                renderTemplate(); 
+            }, 1000);
+
+            const btnConnect = document.getElementById("btn-sync-hardware");
+            if(btnConnect) btnConnect.addEventListener("click", connectBluetooth);
+
+            const btnTransfer = document.getElementById("btn-transfer-data");
+            if(btnTransfer) btnTransfer.addEventListener("click", transferDataToHardware);
+            
+            const inputTemp = document.getElementById("input-nhiet-do");
+            if(inputTemp) inputTemp.addEventListener("input", renderTemplate);
         };
     </script>
 </body>
