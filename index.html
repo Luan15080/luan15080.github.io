@@ -78,7 +78,7 @@
             font-weight: bold;
         }
 
-        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER 2.9 INCH 296x128) */
+        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER 2.9 INCH) */
         #khung-xem-truoc {
             border: 3px solid #000;
             border-radius: 8px;
@@ -228,7 +228,7 @@
         .minute-hand { width: 2px; height: 35px; }
         .second-hand { width: 1px; height: 38px; background-color: red; }
 
-        /* Vùng hiển thị Câu nói / Ngày lễ dưới đáy Mẫu 5 */
+        /* Vùng hiển thị Câu nói dưới đáy Mẫu 5 */
         .calendar-footer-quote {
             width: 100%;
             text-align: center;
@@ -292,7 +292,7 @@
             <div class="card-demo-box" style="background:#000; color:#fff; font-size:14px;">12:30</div>
         </div>
         <div class="template-card-item">
-            <div class="card-title">Mẫu 2: Lịch Số Khổng Lồ</div>
+            <div class="card-title">Mẫu 2: Lịch Lớn Tối Giản</div>
             <div class="card-demo-box" style="font-size:22px;">05</div>
         </div>
         <div class="template-card-item">
@@ -349,7 +349,7 @@
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // Cấu hình định danh UUID cho dịch vụ Bluetooth thực tế
+        // Định danh UUID mặc định (Có thể thay đổi tùy mạch nhận)
         const BLE_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
         const BLE_CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
         let bluetoothDevice = null;
@@ -376,7 +376,6 @@
             }
         }
 
-        // Hàm lấy và định dạng dữ liệu thời gian hệ thống
         function getPhoneTimeDetails() {
             let now = new Date();
             let hh = now.getHours();
@@ -398,10 +397,10 @@
                     lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
                     lunarText = `Âm Lịch ${lunarDayStr}`;
                 } catch (e) {
-                    lunarText = "Âm Lịch 21/04";
+                    lunarText = "Âm Lịch --/--";
                 }
             } else {
-                lunarText = "Âm Lịch 21/04"; 
+                lunarText = "Âm Lịch --/--"; 
             }
 
             return { 
@@ -411,7 +410,6 @@
             };
         }
 
-        // Hàm vẽ lưới lịch tháng cho Mẫu 5
         function generateCalendarGrid(year, month, currentDay) {
             let firstDay = new Date(year, month - 1, 1).getDay();
             let daysInMonth = new Date(year, month, 0).getDate();
@@ -456,7 +454,6 @@
             return html;
         }
 
-        // Hàm hiển thị giao diện xem trước
         function renderTemplate() {
             const timeData = getPhoneTimeDetails();
             
@@ -532,48 +529,8 @@
 
                 case 5:
                     let footerText = "";
-                    if (timeData.month === 1 && timeData.dayRaw === 1) {
-                        footerText = "🎉 Chúc Mừng Năm Mới (Tết Dương Lịch) 🎉";
-                    } else if (timeData.month === 4 && timeData.dayRaw === 30) {
-                        footerText = "🇻🇳 Ngày Giải Phóng Miền Nam 30/04 🇻🇳";
-                    } else if (timeData.month === 5 && timeData.dayRaw === 1) {
-                        footerText = "🎉 Ngày Quốc Tế Lao Động 01/05 🎉";
-                    } else if (timeData.month === 9 && timeData.dayRaw === 2) {
-                        footerText = "🇻🇳 Ngày Quốc Khánh Việt Nam 02/09 🇻🇳";
-                    } else {
-                        if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
-                            try {
-                                let currentLunar = LunarCalendar.solarToLunar(timeData.year, timeData.month, timeData.dayRaw);
-                                let lMonth = currentLunar.lunarMonth;
-                                let lDay = currentLunar.lunarDay;
-
-                                if (lMonth === 1 && (lDay === 1 || lDay === 2 || lDay === 3)) {
-                                    footerText = "🧧 Chúc Mừng Năm Mới - Tết Nguyên Đán 🧧";
-                                } else if (lMonth === 1 && lDay === 15) {
-                                    footerText = "🌕 Đại Lễ Rằm Tháng Giêng 🌕";
-                                } else if (lMonth === 3 && lDay === 10) {
-                                    footerText = "🌾 Ngày Giỗ Tổ Hùng Vương (10/03) 🌾";
-                                } else if (lMonth === 4 && lDay === 15) {
-                                    footerText = "🪷 Đại Lễ Phật Đản (15/04) 🪷";
-                                } else if (lMonth === 4 && lDay === 21) {
-                                    footerText = "🌙 Ngày rằm Âm Lịch: 21 tháng Tư 🌙";
-                                } else if (lMonth === 5 && lDay === 5) {
-                                    footerText = "🌾 Tết Đoan Ngọ (05/05) 🌾";
-                                } else if (lMonth === 7 && lDay === 15) {
-                                    footerText = "🪷 Đại Lễ Vu Lan Báo Hiếu (15/07) 🪷";
-                                } else if (lMonth === 8 && lDay === 15) {
-                                    footerText = "🥮 Tết Trung Thu Vui Vẻ 🥮";
-                                }
-                            } catch (e) {
-                                footerText = "";
-                            }
-                        }
-                    }
-
-                    if (footerText === "") {
-                        let quoteIndex = timeData.dayRaw % dailyQuotes.length;
-                        footerText = `"${dailyQuotes[quoteIndex]}"`;
-                    }
+                    let quoteIndex = timeData.dayRaw % dailyQuotes.length;
+                    footerText = `"${dailyQuotes[quoteIndex]}"`;
 
                     templateHTML = `
                         <div class="template-box">
@@ -628,33 +585,33 @@
             previewContainer.innerHTML = templateHTML;
         }
 
-        // Logic kết nối Web Bluetooth thực tế
+        // CHỈNH SỬA QUAN TRỌNG: Mở rộng bộ lọc quét để chấp nhận mọi thiết bị Bluetooth gần đó
         async function connectBluetooth() {
             try {
-                logToSystem("Đang mở trình quét thiết bị Bluetooth...");
+                logToSystem("Đang mở cửa sổ chọn thiết bị...");
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: [BLE_SERVICE_UUID] }]
+                    acceptAllDevices: true,
+                    optionalServices: [BLE_SERVICE_UUID] // Đăng ký service để chuẩn bị giao tiếp
                 });
 
-                logToSystem(`Đã chọn thiết bị: ${bluetoothDevice.name}`);
+                logToSystem(`Đang kết nối tới: ${bluetoothDevice.name || "Thiết bị không tên"}`);
                 const server = await bluetoothDevice.gatt.connect();
                 
-                logToSystem("Đang kết nối vào GATT Server...");
+                logToSystem("Đang tìm dịch vụ dữ liệu chính...");
                 const service = await server.getPrimaryService(BLE_SERVICE_UUID);
                 
                 bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
-                logToSystem("Kết nối thành công! Đã tìm thấy Characteristic truyền dữ liệu.");
-                alert(`Đã kết nối thành công tới: ${bluetoothDevice.name}`);
+                logToSystem("Kết nối thành công! Thiết bị đã sẵn sàng nhận dữ liệu.");
+                alert(`Đã kết nối thành công tới: ${bluetoothDevice.name || "Mạch E-Paper"}`);
             } catch (error) {
-                logToSystem(`Lỗi kết nối: ${error.message}`);
-                alert(`Không thể kết nối Bluetooth: ${error.message}`);
+                logToSystem(`Lỗi: ${error.message}`);
+                alert(`Không thể kết nối: ${error.message}`);
             }
         }
 
-        // Đóng gói mảng Byte cấu trúc và đẩy xuống phần cứng qua Bluetooth
         async function transferDataToHardware() {
             if (!bleCharacteristic) {
-                alert("Vui lòng bấm nút 'Kết nối Bluetooth' trước khi thực hiện đồng bộ!");
+                alert("Vui lòng bấm nút 'Kết nối Bluetooth' trước khi đồng bộ!");
                 return;
             }
 
@@ -662,12 +619,7 @@
                 const t = getPhoneTimeDetails();
                 let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
 
-                // Tạo mảng gói tin dữ liệu hex cơ bản truyền xuống mạch ESP32/Mạch nhận
-                // Byte 0: Header (0xAA)
-                // Byte 1: Mẫu mặt đồng hồ hiện tại (1-6)
-                // Byte 2-7: Năm, Tháng, Ngày, Giờ, Phút, Thứ
-                // Byte 8: Nhiệt độ hiệu chỉnh
-                // Byte 9: Checksum hoặc Footer (0xBB)
+                // Gói dữ liệu Byte truyền xuống mạch nhận
                 let dataBuffer = new Uint8Array([
                     0xAA, 
                     currentTemplateIndex,
@@ -681,13 +633,13 @@
                     0xBB
                 ]);
 
-                logToSystem(`Đang chuẩn bị đóng gói dữ liệu cho Mẫu ${currentTemplateIndex}...`);
+                logToSystem(`Đang gửi dữ liệu Mẫu ${currentTemplateIndex}...`);
                 await bleCharacteristic.writeValue(dataBuffer);
                 
-                logToSystem(`Đã truyền thành công gói tin thời gian thực xuống màn hình E-Paper!`);
-                alert("Đồng bộ thời gian và giao diện xuống màn hình thành công!");
+                logToSystem(`Đồng bộ gói tin thành công xuống mạch phần cứng!`);
+                alert("Đã đồng bộ thời gian và giao diện xuống màn hình thành công!");
             } catch (error) {
-                logToSystem(`Lỗi đồng bộ dữ liệu: ${error.message}`);
+                logToSystem(`Lỗi truyền byte: ${error.message}`);
                 alert(`Gặp lỗi khi gửi dữ liệu: ${error.message}`);
             }
         }
@@ -699,7 +651,7 @@
                     templates.forEach(c => c.classList.remove("selected-active"));
                     card.classList.add("selected-active");
                     currentTemplateIndex = index + 1;
-                    logToSystem(`Đã chuyển đổi sang hiển thị Mẫu ${currentTemplateIndex}`);
+                    logToSystem(`Đã chọn Mẫu ${currentTemplateIndex}`);
                     renderTemplate();
                 });
             });
@@ -713,23 +665,14 @@
                 renderTemplate(); 
             }, 1000);
 
-            // Gắn lại sự kiện thực tế cho nút kết nối Bluetooth
             const btnConnect = document.getElementById("btn-sync-hardware");
-            if(btnConnect) {
-                btnConnect.addEventListener("click", connectBluetooth);
-            }
+            if(btnConnect) btnConnect.addEventListener("click", connectBluetooth);
 
-            // Gắn sự kiện thực tế cho nút đồng bộ dữ liệu xuống màn hình
             const btnTransfer = document.getElementById("btn-transfer-data");
-            if(btnTransfer) {
-                btnTransfer.addEventListener("click", transferDataToHardware);
-            }
+            if(btnTransfer) btnTransfer.addEventListener("click", transferDataToHardware);
             
-            // Lắng nghe thay đổi nhiệt độ để cập nhật trực tiếp lên preview
             const inputTemp = document.getElementById("input-nhiet-do");
-            if(inputTemp) {
-                inputTemp.addEventListener("input", renderTemplate);
-            }
+            if(inputTemp) inputTemp.addEventListener("input", renderTemplate);
         };
     </script>
 </body>
