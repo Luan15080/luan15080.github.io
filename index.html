@@ -6,85 +6,90 @@
     <title>Thẻ E-Paper 2.9" - Full Code</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
     <style>
-        :root { --btn-green: #4CAF50; --btn-yellow: #FFC107; --btn-red: #F44336; --blue-active: #2196F3; }
-        body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
+        :root { --green: #4CAF50; --yellow: #FFC107; --blue: #2196F3; --red: #F44336; }
+        body { font-family: Arial, sans-serif; margin: 10px; background-color: #f9f9f9; }
         
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; color: white; cursor: pointer; text-align: center; margin-bottom: 10px; transition: 0.3s; }
-        .state-idle { background-color: var(--btn-green); }
-        .state-connecting { background-color: var(--btn-yellow); color: #333; }
-        .state-connected { background-color: var(--btn-green); filter: brightness(1.2); }
-        .state-error { background-color: var(--btn-red); }
+        /* Nút kết nối gộp trạng thái */
+        .btn-conn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; text-align: center; font-size: 16px; margin-bottom: 15px; transition: 0.3s; }
+        .state-idle { background-color: var(--green); }
+        .state-connecting { background-color: var(--yellow); color: #333; }
+        .state-connected { background-color: var(--blue); }
+        .state-error { background-color: var(--red); }
 
-        .section-title { font-weight: bold; margin: 15px 0 10px; border-left: 4px solid #333; padding-left: 8px; }
-        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; }
-        .card.active { border-color: var(--blue-active); background: #e3f2fd; }
-        
-        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background: white; min-height: 250px; padding: 10px; margin-bottom: 10px; }
-        .global-footer-quote { text-align: center; font-style: italic; font-weight: bold; font-size: 12px; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px; }
+        .section-title { font-weight: bold; margin: 15px 0 10px; border-left: 4px solid var(--green); padding-left: 8px; }
+        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .card { background: white; border: 2px solid #ddd; padding: 10px; border-radius: 6px; text-align: center; cursor: pointer; }
+        .card.active { border-color: var(--blue); background: #e3f2fd; }
+        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background: white; min-height: 250px; padding: 10px; margin-bottom: 15px; }
+        .btn-sync { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <button id="btn-bluetooth" class="btn-main state-idle">Kết nối Bluetooth</button>
+    <button id="btn-bluetooth" class="btn-conn state-idle">Kết nối Bluetooth</button>
 
     <div class="section-title">Chọn mẫu mặt đồng hồ:</div>
     <div class="template-grid" id="grid-templates">
-        <div class="card active" onclick="setTemplate(1)">Mẫu 1: Lật Dài</div>
-        <div class="card" onclick="setTemplate(2)">Mẫu 2: Lịch Số</div>
-        <div class="card" onclick="setTemplate(3)">Mẫu 3: Số To</div>
-        <div class="card" onclick="setTemplate(4)">Mẫu 4: Âm Dương</div>
-        <div class="card" onclick="setTemplate(5)">Mẫu 5: Tháng</div>
-        <div class="card" onclick="setTemplate(6)">Mẫu 6: Kim Tròn</div>
+        <div class="card active" onclick="selectTemplate(1)">Mẫu 1: Lật Dài</div>
+        <div class="card" onclick="selectTemplate(2)">Mẫu 2: Lịch Số</div>
+        <div class="card" onclick="selectTemplate(3)">Mẫu 3: Số To</div>
+        <div class="card" onclick="selectTemplate(4)">Mẫu 4: Âm Dương</div>
+        <div class="card" onclick="selectTemplate(5)">Mẫu 5: Tháng</div>
+        <div class="card" onclick="selectTemplate(6)">Mẫu 6: Kim Tròn</div>
     </div>
 
     <div class="section-title">Khung Xem Trước:</div>
     <div id="khung-xem-truoc"></div>
 
-    <button id="btn-sync" class="btn-main" style="background:var(--blue-active);">ĐỒNG BỘ DỮ LIỆU</button>
+    <button class="btn-sync" id="btn-sync-data">ĐỒNG BỘ DỮ LIỆU</button>
 
     <script>
-        let currentTemplate = 1;
         const btnBluetooth = document.getElementById('btn-bluetooth');
-        
-        function updateBtnState(state) {
-            btnBluetooth.className = "btn-main";
-            if (state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
-            else if (state === 'connecting') { btnBluetooth.classList.add('state-connecting'); btnBluetooth.innerText = "🔄 Đang kết nối..."; }
-            else if (state === 'connected') { btnBluetooth.classList.add('state-connected'); btnBluetooth.innerText = "✅ Đã kết nối"; }
-            else if (state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
+        let currentTemplate = 1;
+
+        // 1. Logic nút kết nối thông minh
+        function setBtnState(state) {
+            btnBluetooth.className = "btn-conn";
+            if(state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
+            else if(state === 'connecting') { btnBluetooth.classList.add('state-connecting'); btnBluetooth.innerText = "🔄 Đang kết nối..."; }
+            else if(state === 'connected') { btnBluetooth.classList.add('state-connected'); btnBluetooth.innerText = "✅ Đã kết nối"; }
+            else if(state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
         }
 
-        function setTemplate(idx) {
+        btnBluetooth.addEventListener('click', async () => {
+            setBtnState('connecting');
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true, 
+                    optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
+                });
+                await device.gatt.connect();
+                setBtnState('connected');
+                device.addEventListener('gattserverdisconnected', () => setBtnState('error'));
+            } catch (err) {
+                setBtnState('error');
+            }
+        });
+
+        // 2. Logic chọn mẫu
+        function selectTemplate(idx) {
             currentTemplate = idx;
             document.querySelectorAll('.card').forEach((c, i) => c.className = (i+1 === idx) ? 'card active' : 'card');
             render();
         }
 
-        async function connectBLE() {
-            updateBtnState('connecting');
-            try {
-                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"] });
-                const server = await device.gatt.connect();
-                updateBtnState('connected');
-                device.addEventListener('gattserverdisconnected', () => updateBtnState('error'));
-            } catch (err) {
-                updateBtnState('error');
-            }
-        }
-
+        // 3. Logic hiển thị khung xem trước (Anh dán lại code render của anh ở đây)
         function render() {
             const now = new Date();
-            const quote = "Hành trình vạn dặm bắt đầu từ một bước chân."; // Danh ngôn mẫu
             document.getElementById('khung-xem-truoc').innerHTML = `
-                <div style="font-size:20px; font-weight:bold;">${now.getHours()}:${now.getMinutes()}</div>
-                <div class="global-footer-quote">${quote}</div>
+                <div style="text-align:center; padding-top:50px;">
+                    <div style="font-size:40px; font-weight:bold;">${now.getHours()}:${now.getMinutes()}</div>
+                    <p>Đang hiển thị Mẫu ${currentTemplate}</p>
+                </div>
             `;
         }
-
-        btnBluetooth.onclick = connectBLE;
+        
         window.onload = render;
     </script>
 </body>
 </html>
-
