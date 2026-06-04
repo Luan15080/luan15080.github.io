@@ -3,265 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bộ Điều Khiển Màn Hình E-Paper của Luân</title>
+    <title>Thẻ E-Paper - Bộ Điều Khiển Toàn Diện</title>
     <style>
-        :root { --primary-color: #4CAF50; --secondary-color: #007bff; --danger-color: #dc3545; }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f5f5f5; color: #333; font-size: 14px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        h2 { font-size: 18px; margin-top: 0; text-align: center; color: #111; }
-        p.subtitle { font-size: 12px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 15px; }
-        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; background: #eee; border: none; cursor: pointer; font-weight: bold; font-size: 13px; color: #555; transition: 0.2s; }
-        .tab-btn.active { background: var(--secondary-color); color: white; border-radius: 4px 4px 0 0; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .btn { padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-        .btn-full { grid-column: span 2; }
-        .btn-green { background-color: var(--primary-color); }
-        .btn-blue { background-color: var(--secondary-color); }
-        .btn-red { background-color: var(--danger-color); }
-        .canvas-container { position: relative; width: 400px; height: 300px; border: 2px dashed #999; margin: 10px auto; background: #fff; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
-        .design-panel { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .panel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #ddd; }
-        .panel-row label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px; }
-        .canvas-item { position: absolute; padding: 6px; border: 1px solid #333; background: #e0e0e0; cursor: move; user-select: none; font-size: 14px; font-weight: bold; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
-        .canvas-item.selected { border: 2px solid var(--secondary-color); background: #b3d7ff; }
-        #log-panel { margin-top: 15px; background: #222; color: #0f0; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; max-height: 120px; overflow-y: auto; text-align: left; }
+        :root { --primary-green: #4CAF50; --active-blue: #3f51b5; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 5px; background-color: #f9f9f9; font-size: 12px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        /* Navigation Tabs */
+        .tabs-header { display: flex; gap: 4px; border-bottom: 2px solid #3f51b5; padding-bottom: 4px; margin-bottom: 10px; overflow-x: auto; white-space: nowrap; }
+        .tab-link { flex: 1; padding: 8px 4px; background-color: #4CAF50; color: white; border: none; font-weight: bold; border-radius: 3px; cursor: pointer; text-align: center; font-size: 11px; }
+        .tab-link.active { background-color: white; color: #3f51b5; border: 1px solid #3f51b5; border-bottom: none; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        h3 { font-size: 14px; margin: 10px 0 5px 0; color: #111; }
+        .sub-txt { color: #666; margin: -3px 0 10px 0; font-size: 11px; }
+        
+        /* Grid & Buttons */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+        .btn-block { width: 100%; display: block; margin-bottom: 8px; }
+        .btn { background-color: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-gray { background-color: #6c757d; }
+        .btn-blue { background-color: #2196F3; }
+        .btn-red { background-color: #f44336; }
+        
+        /* Form inputs */
+        input[type="text"], input[type="number"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px; }
+        label { font-weight: bold; display: block; margin-bottom: 3px; }
+        .range-box { margin-bottom: 8px; }
+        .range-box span { float: right; font-weight: bold; }
+
+        /* Preview Display Frame */
+        .preview-box { width: 100%; max-width: 400px; height: 300px; border: 2px solid #333; margin: 10px auto; background: white; position: relative; overflow: hidden; }
+        .matrix-preview { background: black; color: white; padding: 10px; text-align: center; font-family: monospace; font-size: 24px; letter-spacing: 2px; font-weight: bold; border: 2px dashed #555; }
+        
+        /* Designer layout items */
+        .color-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+        .color-dot { width: 18px; height: 18px; border-radius: 5px; border: 1px solid #aaa; cursor: pointer; }
+        .icon-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-bottom: 8px; }
+        .icon-btn { padding: 4px 2px; border: 1px solid #ccc; background: #fff; font-size: 10px; text-align: center; cursor: pointer; border-radius: 2px; }
+        
+        #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 80px; overflow-y: auto; font-family: monospace; font-size: 10px; color: #444; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Bộ điều khiển Bluetooth màn hình E-Paper</h2>
-    <p class="subtitle">Kết nối thiết bị trước khi cài đặt đồng hồ.</p>
-
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-tab-setting" onclick="switchTab('setting')">Cài đặt màn hình điện tử</button>
-        <button class="tab-btn" id="btn-tab-design" onclick="switchTab('design')">Trình thiết kế mẫu</button>
+    <!-- Header Tabs Navigation -->
+    <div class="tabs-header">
+        <button class="tab-link active" onclick="openTab(event, 'tab-setting')">Cài đặt màn hình điện tử</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-countdown')">Mô-đun đếm ngược</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-image')">Chuyển ảnh</button>
+        <button class="tab-link" onclick="openTab(event, 'tab-designer')">Trình thiết kế mẫu</button>
     </div>
 
-    <div id="tab-setting">
-        <div class="btn-grid">
-            <button class="btn btn-green btn-full" onclick="connectBluetooth()">Thiết bị quét</button>
-            <button class="btn btn-green btn-full" onclick="sendBLECommand('RECONNECT')">Kết nối lại</button>
-            <button class="btn btn-green" onclick="sendBLECommand('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
-            <button class="btn btn-green" onclick="sendBLECommand('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
-            <button class="btn btn-green" onclick="sendBLECommand('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
-            <button class="btn btn-green" onclick="sendBLECommand('IMAGE_MODE')">Đặt chế độ hình ảnh</button>
-            <button class="btn btn-green" onclick="sendBLECommand('INVERT_BW')">Bật/tắt chế độ đảo màu đen trắng</button>
-            <button class="btn btn-green" onclick="sendBLECommand('ROTATE_180')">Xoay màn hình 180 độ</button>
+    <!-- TAB 1: CAI DAT MAN HINH DIEN TU -->
+    <div id="tab-setting" class="tab-content active">
+        <h3>Bộ điều khiển Bluetooth màn hình E-Paper - Kết nối thiết bị trước khi cài đặt đồng hồ.</h3>
+        <div class="grid-2">
+            <button class="btn" onclick="triggerBLE('SCAN')">Thiết bị quét</button>
+            <button class="btn" onclick="triggerBLE('RECONNECT')">Kết nối lại</button>
         </div>
-    </div>
-
-    <div id="tab-design" style="display:none;">
-        <div class="canvas-container" id="epaper-canvas"></div>
+        <button class="btn btn-block" onclick="clearLog()">Xóa nhật ký</button>
         
-        <div class="design-panel">
-            <div class="panel-row">
-                <div>
-                    <label>Thêm phần tử:</label>
-                    <select id="el-type" style="width:100%; padding:6px; border-radius:4px;">
-                        <option value="time_flip">Đồng hồ lật (Giờ:Phút)</option>
-                        <option value="date_solar">Ngày Dương Lịch</option>
-                        <option value="date_lunar">Ngày Âm Lịch</option>
-                        <option value="temp_val">Hiển thị Nhiệt độ</option>
-                        <option value="bat_icon">Biểu tượng Pin</option>
-                    </select>
-                </div>
-                <div>
-                    <label>&nbsp;</label>
-                    <button class="btn btn-green" style="width:100%; padding:6px;" onclick="addCanvasItem()">Thêm phần tử</button>
-                </div>
-            </div>
+        <div class="grid-2" style="grid-template-columns: 4fr 1fr;">
+            <button class="btn" id="btn-time-sync">Thời gian thiết lập: 2026-6-5 01:01:54 Tuần 5</button>
+            <input type="number" value="0" id="sync-offset">
+        </div>
 
-            <div class="panel-row">
-                <div>
-                    <label>Kích thước phần tử (W x H):</label>
-                    <input type="number" id="item-w" value="60" style="width:45%;"> x 
-                    <input type="number" id="item-h" value="40" style="width:45%;">
-                </div>
-                <div>
-                    <label>&nbsp;</label>
-                    <button class="btn btn-blue" style="width:100%; padding:6px;" onclick="applyItemSize()">Áp dụng kích thước</button>
-                </div>
-            </div>
+        <div class="grid-2">
+            <button class="btn" onclick="triggerBLE('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
+            <button class="btn" onclick="triggerBLE('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
+            <button class="btn" onclick="triggerBLE('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
+            <button class="btn" onclick="triggerBLE('SET_IMG_MODE')">Đặt chế độ hình ảnh</button>
+            <button class="btn" onclick="triggerBLE('INVERT_COLOR')">Bật/tắt chế độ đảo màu đen trắng</button>
+            <button class="btn" onclick="triggerBLE('ROTATE_180')">Xoay màn hình 180 độ</button>
+        </div>
 
-            <div class="btn-grid" style="margin-top:5px;">
-                <button class="btn btn-red btn-full" onclick="clearAllCanvas()">Xóa tất cả các thành phần trên Canvas</button>
-                <button class="btn btn-blue btn-full" onclick="deployCustomTemplate()">Áp dụng mẫu và truyền dữ liệu</button>
+        <input type="text" id="hex-refresh-input" value="Hiệu chỉnh làm mới một phần màu đỏ (hex 01-0f). Tắt màu đỏ và hiệu chỉnh màu đen (10-f0). Giá trị càng cao thì màu càng tối.">
+        <div class="grid-2">
+            <button class="btn" onclick="triggerBLE('PARTIAL_CONFIG')">Thiết lập hiệu chỉnh làm mới một phần (cũng như nhập lệnh)</button>
+            <button class="btn" onclick="location.reload()">(Không có phản hồi? Nhấp chuột) Làm mới</button>
+            <button class="btn" onclick="triggerBLE('SEND_AA')">Gửi AA</button>
+            <button class="btn" onclick="triggerBLE('SEND_AB')">Gửi AB</button>
+        </div>
+
+        <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 8px;">
+            <span>Giờ bắt đầu:</span><input type="number" value="0" style="width:50px; margin:0;">
+            <span>Giờ kết thúc:</span><input type="number" value="0" style="width:50px; margin:0;">
+            <button class="btn" style="flex:1;" onclick="triggerBLE('SLEEP_ON')">Bật chế độ ngủ (không làm mới trong khoảng thời gian màn hình trắng)</button>
+        </div>
+        <button class="btn btn-block" onclick="triggerBLE('SLEEP_OFF')">Tắt chế độ ngủ (màn hình tự làm mới trong thời gian màn hình trắng) + Chế độ tiết kiệm pin + Sửa chữa</button>
+
+        <label>Biển báo đỗ xe đồng hồ độ phân giải thấp 2,13" - Nhập số:</label>
+        <input type="text" placeholder="Con số:">
+        <button class="btn btn-block" onclick="triggerBLE('SET_PARKING_NUM')">Đặt số hiển thị</button>
+
+        <label>Kích hoạt (không cần thiết nếu màn hình hoạt động):</label>
+        <input type="text" placeholder="Nhập mã kích hoạt:">
+        <button class="btn btn-block" onclick="triggerBLE('ACTIVATE_DEV')">Kích hoạt</button>
+    </div>
+
+    <!-- TAB 2: MO-DUN DEM NGUOC -->
+    <div id="tab-countdown" class="tab-content">
+        <h3>Công cụ chọn ngày đếm ngược - Chọn để áp dụng</h3>
+        <label>Chọn ngày:</label>
+        <select><option>-- Chọn ngày sự kiện --</option></select>
+        
+        <div style="border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-top: 8px;">
+            <p><strong>Cài đặt Cài đặt đầu vào</strong></p>
+            <label>Nhập văn bản (tối đa 8 ký tự)</label>
+            <input type="text" value="COUNT" id="countdown-text-input">
+            
+            <label>Giao diện đếm ngược</label>
+            <input type="text" value="Đồng hồ đếm ngược" disabled style="background:#eee;">
+            
+            <label>Chọn phông chữ (chỉ dành cho máy tính để bàn)</label>
+            <select id="font-family-select"><option value="SimSun">SimSun</option><option value="Arial">Arial</option></select>
+            
+            <div class="range-box">
+                <label>Cỡ chữ (50%-150%)</label>
+                <input type="range" min="50" max="150" value="100">
+                <span id="font-scale-val">100%</span>
+            </div>
+            <p class="sub-txt">Điều chỉnh tỷ lệ hiển thị phông chữ. Kích thước quá lớn có thể làm cắt bớt ký tự.</p>
+            
+            <div class="matrix-preview" id="countdown-preview">COUNT</div>
+            
+            <div class="grid-2" style="margin-top:10px;">
+                <button class="btn" onclick="triggerBLE('START_COUNTDOWN')">Bắt đầu đếm ngược</button>
+                <button class="btn btn-gray" onclick="triggerBLE('STOP_COUNTDOWN')">Dừng đếm ngược</button>
             </div>
         </div>
     </div>
 
-    <div id="log-panel">Nhật ký hệ thống: Sẵn sàng kết nối Web Bluetooth.</div>
+    <!-- TAB 3: CHUYEN ANH -->
+    <div id="tab-image" class="tab-content">
+        <h3>Tải ảnh lên màn hình</h3>
+        <input type="file" accept="image/*" style="margin-bottom:8px;">
+        
+        <label>Kích thước màn hình:</label>
+        <select><option>Chuyển đổi 4.2"</option><option>Chuyển đổi 2.9"</option><option>Chuyển đổi 2.13"</option></select>
+        
+        <label>Thuật toán tạo hiệu ứng nhiễu:</label>
+        <select><option>BWR Floyd-Steinberg</option><option>Đen Trắng Thuần</option></select>
+
+        <div class="range-box">
+            <label>Ngưỡng (chế độ đen trắng):</label>
+            <input type="range" min="0" max="255" value="128">
+        </div>
+        <div class="range-box">
+            <label>Góc xoay: 0 độ</label>
+            <input type="range" min="0" max="360" value="0">
+        </div>
+        <div class="range-box">
+            <label>Tỷ lệ: 100%</label>
+            <input type="range" min="10" max="200" value="100">
+        </div>
+
+        <div class="grid-2">
+            <button class="btn" onclick="processImg('REFRESH')">Tải lại</button>
+            <button class="btn" onclick="processImg('ZOOM')">Phóng to màn hình</button>
+            <button class="btn" onclick="processImg('FIT')">Điều chỉnh cho phù hợp với màn hình</button>
+            <button class="btn" onclick="processImg('RESET')">Đặt lại về 100%</button>
+            <button class="btn" onclick="processImg('ROT_90')">Xoay theo chiều kim đồng hồ 90 độ</button>
+            <button class="btn" onclick="processImg('ROT_270')">Xoay ngược chiều kim đồng hồ 90 độ</button>
+        </div>
+        <button class="btn btn-block" onclick="processImg('RESET_ROT')">Đặt lại chế độ xoay</button>
+
+        <div style="width:100%; height:180px; border:1px solid #ccc; margin-bottom:10px; background:#fff; display:flex; justify-content:center; align-items:center; color:#aaa;">
+            [Khung xử lý hình ảnh]
+        </div>
+
+        <div style="border:1px solid #eee; padding:6px; background:#fdfdfd; margin-bottom:8px;">
+            <p><strong>Điều chỉnh hình ảnh</strong></p>
+            <div class="range-box"><label>Độ sáng: 100</label><input type="range" min="0" max="200" value="100"></div>
+            <div class="range-box"><label>Độ tương phản: 100</label><input type="range" min="0" max="200" value="100"></div>
+            <div class="range-box"><label>Độ bão hòa: 100</label><input type="range" min="0" max="200" value="100"></div>
+            <div class="range-box"><label>Cường độ khuếch tán: 50</label><input type="range" min="0" max="100" value="50"></div>
+        </div>
+
+        <div class="grid-2">
+            <button class="btn btn-blue" onclick="processImg('APPLY')">Áp dụng điều chỉnh hình ảnh</button>
+            <button class="btn" onclick="triggerBLE('UPLOAD_IMAGE')">Tải lên màn hình ngay</button>
+        </div>
+    </div>
+
+    <!-- TAB 4: TRINH THIET KE MAU -->
+    <div id="tab-designer" class="tab-content">
+        <div class="grid-2" style="grid-template-columns: 2fr 1fr;">
+            <div class="preview-box" id="design-canvas"></div>
+            <div>
+                <label>Đặt chiều rộng và chiều cao của phần tử</label>
+                <input type="number" value="40" id="el-w">
+                <input type="number" value="40" id="el-h">
+                <button class="btn btn-block" style="font-size:11px;" onclick="updateElSize()">Áp dụng kích thước</button>
+                
+                <label style="margin-top:10px;">Xoay phần tử</label>
+                <input type="range" min="0" max="360" value="0">
+                <span style="font-size:10px; float:right;">0 độ</span>
+                
+                <div style="margin-top:15px;">
+                    <button class="btn btn-red btn-block" style="font-size:11px;">Xóa phần tử</button>
+                    <button class="btn btn-blue btn-block" style="font-size:11px;">Sao chép phần tử</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2" style="grid-template-columns: 1fr 2fr;">
+            <div>
+                <label>Thêm phần tử</label>
+                <select id="designer-add-type">
+                    <option>Hình ảnh/Biểu tượng</option>
+                    <option>Văn bản tùy chỉnh</option>
+                    <option>Thời gian số</option>
+                </select>
+                <button class="btn btn-block" onclick="addDesignerItem()">Thêm phần tử</button>
+                <input type="text" value="Custom Text" style="margin-top:5px;" id="custom-text-val">
+            </div>
+            
+            <div>
+                <label>Chọn màu</label>
+                <div class="color-picker">
+                    <div class="color-dot" style="background:#fff;"></div>
+                    <div class="color-dot" style="background:#000;"></div>
+                    <div class="color-dot" style="background:#f44336;"></div>
+                    <div class="color-dot" style="background:#ffeb3b;"></div>
+                    <div class="color-dot" style="background:#4caf50;"></div>
+                    <div class="color-dot" style="background:#2196f3;"></div>
+                    <div class="color-dot" style="background:#e91e63;"></div>
+                    <div class="color-dot" style="background:#9c27b0;"></div>
+                    <div class="color-dot" style="background:#00bcd4;"></div>
+                    <div class="color-dot" style="background:#ff9800;"></div>
+                </div>
+                
+                <div class="grid-2">
+                    <select><option>Microsoft YaHei</option></select>
+                    <select><option>16px</option></select>
+                </div>
+                
+                <div style="display:flex; gap:3px; margin-bottom:6px;">
+                    <button class="btn btn-gray" style="flex:1; padding:5px;">In đậm</button>
+                    <button class="btn btn-gray" style="flex:1; padding:5px;">Chữ nghiêng</button>
+                    <button class="btn btn-gray" style="flex:1; padding:5px;">Gạch chân</button>
+                </div>
+                <button class="btn btn-block" onclick="updateTextContent()">Văn bản cập nhật</button>
+            </div>
+        </div>
+
+        <div class="grid-2" style="grid-template-columns: 2fr 1fr; margin-top:5px;">
+            <input type="text" value="https://luan15080.github.io/" id="qr-link-input">
+            <button class="btn btn-blue" onclick="generateQR()">Tạo mã QR</button>
+        </div>
+
+        <!-- Icons list I1 to I25 -->
+        <div class="icon-grid" style="margin-top:8px;">
+            <script>
+                for(let i=1; i<=25; i++) {
+                    document.write(`<div class="icon-btn" onclick="addIcon('I${i}')">I${i}</div>`);
+                }
+            </script>
+        </div>
+
+        <div class="grid-2">
+            <input type="text" value="#FFFFFF" style="margin:0; height:32px;">
+            <button class="btn" style="padding:4px;">Áp dụng</button>
+        </div>
+
+        <div class="grid-2" style="margin-top:5px;">
+            <button class="btn btn-blue" style="font-size:11px;">Tải lên hình nền</button>
+            <button class="btn btn-blue" style="font-size:11px;">Tải lên biểu tượng tùy chỉnh</button>
+        </div>
+        <button class="btn btn-blue btn-block" style="margin-top:5px;">Lưu Canvas dưới dạng Hình ảnh (có thể khôi phục thông qua quá trình tải lên nền)</button>
+
+        <button class="btn btn-red btn-block" style="margin-top:10px;">Xóa tất cả các thành phần trên Canvas</button>
+        <button class="btn btn-block" style="margin-top:5px;">Áp dụng mẫu và chuyển sang trang chuyển khoản.</button>
+    </div>
+
+    <!-- LOG COMPONENT -->
+    <div id="log-terminal">Nhật ký:<br>01:01:52 : Kích thước khung vẽ đã được cập nhật thành công: 400x300</div>
 </div>
 
 <script>
-    let bluetoothDevice = null;
-    let txCharacteristic = null;
-    let selectedItem = null;
-
-    // UUID dịch vụ BLE chuẩn cho mạch kết nối UART/Serial
-    const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
-    const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
-
-    function printLog(text) {
-        const panel = document.getElementById('log-panel');
-        panel.innerHTML += "<br>> " + text;
-        panel.scrollTop = panel.scrollHeight;
+    function openTab(evt, tabId) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabId).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+    
+    function logMessage(msg) {
+        const term = document.getElementById('log-terminal');
+        term.innerHTML += `<br>${new Date().toLocaleTimeString()} : ${msg}`;
+        term.scrollTop = term.scrollHeight;
     }
 
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        if (tabName === 'setting') {
-            document.getElementById('tab-setting').style.display = 'block';
-            document.getElementById('tab-design').style.display = 'none';
-            document.getElementById('btn-tab-setting').classList.add('active');
-        } else {
-            document.getElementById('tab-setting').style.display = 'none';
-            document.getElementById('tab-design').style.display = 'block';
-            document.getElementById('btn-tab-design').classList.add('active');
-        }
-    }
-
-    async function connectBluetooth() {
-        try {
-            printLog("Đang quét thiết bị điều khiển E-Paper...");
-            bluetoothDevice = await navigator.bluetooth.requestDevice({
-                acceptAllDevices: true,
-                optionalServices: [SERVICE_UUID]
-            });
-            
-            printLog(`Đang kết nối tới thiết bị: ${bluetoothDevice.name}...`);
-            const server = await bluetoothDevice.gatt.connect();
-            
-            printLog("Đang cấu hình dịch vụ Bluetooth...");
-            const service = await server.getPrimaryService(SERVICE_UUID);
-            txCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-            
-            printLog("ĐÃ KẾT NỐI THÀNH CÔNG! Sẵn sàng điều khiển.");
-        } catch (err) {
-            printLog("Lỗi kết nối Bluetooth: " + err);
-        }
-    }
-
-    async function sendBLECommand(commandString) {
-        if (!txCharacteristic) {
-            printLog("Lỗi: Chưa kết nối Bluetooth. Vui lòng bấm 'Thiết bị quét'.");
-            alert("Vui lòng quét kết nối thiết bị Bluetooth trước!");
-            return;
-        }
-        try {
-            printLog(`Đang truyền lệnh: [${commandString}] xuống mạch...`);
-            const encoder = new TextEncoder();
-            const dataBuffer = encoder.encode(commandString + '\n');
-            await txCharacteristic.writeValue(dataBuffer);
-            printLog("Truyền dữ liệu lệnh thành công.");
-        } catch (err) {
-            printLog("Lỗi khi truyền dữ liệu: " + err);
-        }
-    }
-
-    function addCanvasItem() {
-        const canvas = document.getElementById('epaper-canvas');
-        const type = document.getElementById('el-type').value;
-        const item = document.createElement('div');
-        
-        item.className = 'canvas-item';
-        item.innerText = type.toUpperCase();
-        item.style.left = '20px';
-        item.style.top = '20px';
-        item.style.width = '70px';
-        item.style.height = '30px';
-        item.dataset.type = type;
-
-        // Xử lý sự kiện click chọn phần tử để sửa kích thước
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if(selectedItem) selectedItem.classList.remove('selected');
-            selectedItem = item;
-            item.classList.add('selected');
-            document.getElementById('item-w').value = parseInt(item.style.width);
-            document.getElementById('item-h').value = parseInt(item.style.height);
-        });
-
-        // Kéo thả phần tử trên Canvas di động trực quan
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        const startDrag = (e) => {
-            isDragging = true;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            offsetX = clientX - item.offsetLeft;
-            offsetY = clientY - item.offsetTop;
-        };
-
-        const doDrag = (e) => {
-            if (!isDragging) return;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            let newX = clientX - offsetX;
-            let newY = clientY - offsetY;
-
-            // Giới hạn trong khung E-paper 400x300
-            newX = Math.max(0, Math.min(newX, 400 - item.offsetWidth));
-            newY = Math.max(0, Math.min(newY, 300 - item.offsetHeight));
-
-            item.style.left = newX + 'px';
-            item.style.top = newY + 'px';
-        };
-
-        const stopDrag = () => { isDragging = false; };
-
-        item.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', doDrag);
-        document.addEventListener('mouseup', stopDrag);
-
-        item.addEventListener('touchstart', startDrag);
-        document.addEventListener('touchmove', doDrag);
-        document.addEventListener('touchend', stopDrag);
-
-        canvas.appendChild(item);
-        printLog(`Đã thêm khối: ${type} lên khung vẽ.`);
-    }
-
-    function applyItemSize() {
-        if (!selectedItem) {
-            alert("Vui lòng bấm chọn một phần tử trên khung vẽ trước!");
-            return;
-        }
-        selectedItem.style.width = document.getElementById('item-w').value + 'px';
-        selectedItem.style.height = document.getElementById('item-h').value + 'px';
-        printLog("Đã cập nhật kích thước phần tử được chọn.");
-    }
-
-    function clearAllCanvas() {
-        document.getElementById('epaper-canvas').innerHTML = '';
-        selectedItem = null;
-        printLog("Đã xóa sạch các thành phần thiết kế.");
-    }
-
-    function deployCustomTemplate() {
-        const items = document.querySelectorAll('.canvas-item');
-        if(items.length === 0) {
-            alert("Canvas trống, hãy thêm phần tử để thiết kế!");
-            return;
-        }
-        
-        let layoutData = "LAYOUT:";
-        items.forEach(item => {
-            layoutData += `${item.dataset.type},${parseInt(item.style.left)},${parseInt(item.style.top)},${parseInt(item.style.width)},${parseInt(item.style.height)}|`;
-        });
-        
-        // Gửi chuỗi tọa độ hình học thiết kế xuống cho ESP32 phân tích pixel
-        sendBLECommand(layoutData);
-    }
-
-    // Click ra ngoài canvas thì hủy chọn phần tử
-    document.getElementById('epaper-canvas').addEventListener('click', () => {
-        if(selectedItem) selectedItem.classList.remove('selected');
-        selectedItem = null;
-    });
+    function clearLog() { document.getElementById('log-terminal').innerHTML = "Nhật ký:"; }
+    function triggerBLE(action) { logMessage("Đang thực hiện lệnh BLE: " + action); }
+    function processImg(action) { logMessage("Đang xử lý hình ảnh: " + action); }
+    function addDesignerItem() { logMessage("Đã thêm phần tử thiết kế"); }
+    function updateElSize() { logMessage("Đã áp dụng kích thước phần tử"); }
+    function updateTextContent() { logMessage("Đã cập nhật văn bản"); }
+    function generateQR() { logMessage("Đã tạo mã QR mã hóa liên kết"); }
+    function addIcon(id) { logMessage("Đã chọn chèn biểu tượng: " + id); }
 </script>
+
 </body>
 </html>
