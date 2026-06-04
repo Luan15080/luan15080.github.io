@@ -53,8 +53,33 @@
         .today-box { background: #000; color: #fff; border-radius: 3px; font-weight: bold; }
         .today-box .lunar-num { color: #fff; font-weight: bold; }
 
-        .flip-layout { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 8px 0; }
-        .flip-card { background: #000; color: #fff; font-size: 58px; font-weight: bold; padding: 6px 10px; border-radius: 6px; min-width: 55px; text-align: center; }
+        /* GIAO DIỆN ĐỒNG HỒ LẬT ĐÃ ĐƯỢC KÉO DÀI VÀ CÓ RÃNH CẮT GIỮA */
+        .flip-layout { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 15px 0; }
+        .flip-card { 
+            background: #000; 
+            color: #fff; 
+            font-size: 64px; 
+            font-weight: bold; 
+            width: 52px;
+            height: 95px; 
+            line-height: 95px;
+            border-radius: 6px; 
+            text-align: center; 
+            position: relative;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+        }
+        /* Đường rãnh cắt ngang giữa lá số lật */
+        .flip-card::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1.5px;
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.8);
+        }
+        
         .huge-date { font-size: 90px; font-weight: 900; text-align: center; line-height: 1; margin: 2px 0; }
         
         .top-info { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 2px; }
@@ -72,7 +97,6 @@
         <button class="tab-link" onclick="openTab(event, 'tab-designer')">Kho Mẫu Đồng Hồ</button>
     </div>
 
-    <!-- TAB 1 -->
     <div id="tab-setting" class="tab-content active">
         <h3>Bộ điều khiển thiết bị E-Paper</h3>
         <div class="grid-2">
@@ -87,13 +111,12 @@
         <button class="btn btn-block btn-gray" onclick="clearLog()">Xóa nhật ký hệ thống</button>
     </div>
 
-    <!-- TAB 2 -->
     <div id="tab-designer" class="tab-content">
         <h3>Chạm Trực Tiếp Để Chọn Mặt Màn Hình</h3>
         
         <div class="template-grid">
-            <div class="template-card" id="card-flip" onclick="selectTemplateVisual('flip')">
-                <div class="card-title">Mẫu 1: Đồng Hồ Lật Lớn</div>
+            <div class="template-card selected" id="card-flip" onclick="selectTemplateVisual('flip')">
+                <div class="card-title">Mẫu 1: Đồng Hồ Lật Dài</div>
                 <div class="mini-preview"><div style="font-weight:bold; font-size:14px; background:#000; color:#fff; padding:2px 4px;">12:30</div></div>
             </div>
             <div class="template-card" id="card-calendar" onclick="selectTemplateVisual('calendar')">
@@ -108,7 +131,7 @@
                 <div class="card-title">Mẫu 4: Lịch Âm Dương Rõ</div>
                 <div class="mini-preview"><div style="font-size:9px; font-weight:bold; color:red;">ÂM LỊCH</div></div>
             </div>
-            <div class="template-card selected" id="card-analog-split" onclick="selectTemplateVisual('analog-split')">
+            <div class="template-card" id="card-analog-split" onclick="selectTemplateVisual('analog-split')">
                 <div class="card-title">Mẫu 5: Lịch 1 Tháng (Âm-Dương) - Kim Phải</div>
                 <div class="mini-preview"><div style="font-size:9px; font-weight:bold;">📅[Âm-Dương] | 🕒</div></div>
             </div>
@@ -140,7 +163,7 @@
     let bleDevice = null;
     let bleCharacteristic = null;
     let hardwareVoltageValue = "3.7V"; 
-    let activeTemplateType = "analog-split"; 
+    let activeTemplateType = "flip"; 
 
     const UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
     const UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
@@ -176,10 +199,14 @@
         let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
         let dayStr = daysOfWeek[now.getDay()];
 
-        let lunarText = "Âm Lịch";
-        if (typeof LunarCalendar !== 'undefined') {
-            let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-            lunarText = `Mùng ${String(lunar.lunarDay).padStart(2, '0')} - Tháng ${String(lunar.lunarMonth).padStart(2, '0')} (Âm Lịch)`;
+        let lunarText = "";
+        if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+            try {
+                let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                lunarText = `🌙 Âm: ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+            } catch(e) {
+                lunarText = "";
+            }
         }
 
         return { 
@@ -199,9 +226,7 @@
         let html = `<table class="month-calendar-table">`;
         html += `<tr><th>T2</th><th>T3</th><th>T4</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th></tr><tr>`;
         
-        for (let i = 0; i < startColumn; i++) {
-            html += `<td></td>`;
-        }
+        for (let i = 0; i < startColumn; i++) { html += `<td></td>`; }
         
         let colCount = startColumn;
         for (let d = 1; d <= daysInMonth; d++) {
@@ -211,11 +236,11 @@
             }
             
             let lunarDayStr = "";
-            if (typeof LunarCalendar !== 'undefined') {
-                let lData = LunarCalendar.solarToLunar(year, month, d);
-                lunarDayStr = lData.lunarDay === 1 ? `${lData.lunarDay}/${lData.lunarMonth}` : String(lData.lunarDay).padStart(2, '0');
-            } else {
-                lunarDayStr = String(d).padStart(2, '0');
+            if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+                try {
+                    let lData = LunarCalendar.solarToLunar(year, month, d);
+                    lunarDayStr = lData.lunarDay === 1 ? `${lData.lunarDay}/${lData.lunarMonth}` : String(lData.lunarDay).padStart(2, '0');
+                } catch(e) { lunarDayStr = ""; }
             }
             
             let isToday = (d === currentDay);
@@ -227,15 +252,9 @@
                     <span class="lunar-num">${lunarDayStr}</span>
                 </div>
             </td>`;
-            
             colCount++;
         }
-        
-        while (colCount < 7) {
-            html += `<td></td>`;
-            colCount++;
-        }
-        
+        while (colCount < 7) { html += `<td></td>`; colCount++; }
         html += `</tr></table>`;
         return html;
     }
@@ -249,8 +268,7 @@
         for (let i = 0; i < 12; i++) {
             let angle = i * 30;
             let isMajor = (i % 3 === 0);
-            let r1 = isMajor ? 43 : 46;
-            let r2 = 49;
+            let r1 = isMajor ? 43 : 46; let r2 = 49;
             let x1 = 50 + r1 * Math.cos((angle - 90) * Math.PI / 180);
             let y1 = 50 + r1 * Math.sin((angle - 90) * Math.PI / 180);
             let x2 = 50 + r2 * Math.cos((angle - 90) * Math.PI / 180);
@@ -274,9 +292,7 @@
     }
 
     setInterval(() => {
-        if (document.getElementById('tab-designer').style.display === "block") {
-            renderTemplate();
-        }
+        if (document.getElementById('tab-designer').style.display === "block") { renderTemplate(); }
     }, 1000);
 
     function selectTemplateVisual(type) {
@@ -297,53 +313,44 @@
 
         if (activeTemplateType === 'flip') {
             canvas.innerHTML = `
-                <div class="top-info"><span>${t.day} - ${t.date.substring(0,5)}</span><span>🔋 ${volDisplay}</span></div>
+                <div class="top-info"><span>${t.day} - ${t.date}</span><span>🔋 ${volDisplay}</span></div>
                 <div class="flip-layout">
-                    <div class="flip-card">${t.hour[0]}</div><div class="flip-card">${t.hour[1]}</div>
-                    <span style="font-size:45px;font-weight:bold;align-self:center;margin:0 2px;">:</span>
-                    <div class="flip-card">${t.min[0]}</div><div class="flip-card">${t.min[1]}</div>
+                    <div class="flip-card">${t.hour[0]}</div>
+                    <div class="flip-card">${t.hour[1]}</div>
+                    <span style="font-size:45px;font-weight:bold;align-self:center;margin:0 4px;color:#000;">:</span>
+                    <div class="flip-card">${t.min[0]}</div>
+                    <div class="flip-card">${t.min[1]}</div>
                 </div>
-                <div class="sub-info"><span>${t.lunar}</span><span>🌡️ ${temp}</span></div>`;
+                <div class="sub-info"><span>${t.lunar || "🌙 Âm Lịch"}</span><span>🌡️ ${temp}</span></div>`;
         } 
         else if (activeTemplateType === 'calendar') {
             canvas.innerHTML = `
                 <div class="top-info"><span>📅 DƯƠNG LỊCH</span><span>${t.day} - ${t.date.substring(0,5)}</span></div>
                 <div class="huge-date">${t.date.substring(0,2)}</div>
-                <div class="sub-info"><span>🌙 ${t.lunar}</span><span>🌡️ ${temp}</span><span>🔋 ${volDisplay}</span></div>`;
+                <div class="sub-info"><span>${t.lunar || "🌙 Âm Lịch"}</span><span>🌡️ ${temp}</span><span>🔋 ${volDisplay}</span></div>`;
         } 
         else if (activeTemplateType === 'modern') {
             canvas.innerHTML = `
                 <div style="text-align:center; font-size:48px; font-weight:bold; margin:12px 0 2px 0; letter-spacing:2px;">${t.hour}:${t.min}</div>
                 <div style="text-align:center; font-size:16px; font-weight:bold; background:#000; color:#fff; padding:6px; margin:5px 0; border-radius:3px;">${t.day} | ${t.date}</div>
-                <div class="sub-info"><span>${t.lunar}</span><span>🌡️ ${temp}</span><span>Pin: ${volDisplay}</span></div>`;
+                <div class="sub-info"><span>${t.lunar || "🌙 Âm Lịch"}</span><span>🌡️ ${temp}</span><span>Pin: ${volDisplay}</span></div>`;
         } 
         else if (activeTemplateType === 'lunar') {
             canvas.innerHTML = `
                 <div class="top-info"><span>HỆ THỐNG THỜI GIAN</span><span>🌡️ ${temp}</span></div>
                 <div style="font-size:18px; font-weight:bold; margin:10px 0 4px 0; text-align:center;">Dương: Ngày ${t.date.substring(0,5)} (${t.day})</div>
                 <div style="border-top:2px dashed #000; margin:6px 0;"></div>
-                <div style="font-size:22px; font-weight:bold; margin:4px 0 10px 0; text-align:center;">★ ${t.lunar.toUpperCase()} ★</div>
+                <div style="font-size:22px; font-weight:bold; margin:4px 0 10px 0; text-align:center;">★ LỊCH ÂM LỊCH ★</div>
                 <div class="sub-info"><span>Nguồn: ${volDisplay}</span><span>⏱ Giờ: ${t.hour}:${t.min}</span></div>`;
         }
-        // CẬP NHẬT THEO Ý ANH LUÂN: THỨ, NGÀY, THÁNG, NĂM ĐƯA LÊN TRÊN CÙNG
         else if (activeTemplateType === 'analog-split') {
             canvas.innerHTML = `
-                <div class="top-info">
-                    <span>${t.day}, Ngày ${t.date}</span>
-                    <span>🌡️ ${temp}</span>
-                </div>
+                <div class="top-info"><span>${t.day}, Ngày ${t.date}</span><span>🌡️ ${temp}</span></div>
                 <div class="split-layout">
-                    <div class="split-left">
-                        ${generateFullMonthCalendarHTML(t.year, t.month, t.dayRaw)}
-                    </div>
-                    <div class="split-right">
-                        ${generateAnalogClockSVG(t.hourRaw, t.minRaw, t.secRaw, 115)}
-                    </div>
+                    <div class="split-left">${generateFullMonthCalendarHTML(t.year, t.month, t.dayRaw)}</div>
+                    <div class="split-right">${generateAnalogClockSVG(t.hourRaw, t.minRaw, t.secRaw, 115)}</div>
                 </div>
-                <div class="sub-info">
-                    <span>🌙 ${t.lunar}</span>
-                    <span>🔋 Pin: ${volDisplay}</span>
-                </div>`;
+                <div class="sub-info"><span>${t.lunar || "🌙 Đang tải lịch âm..."}</span><span>🔋 Pin: ${volDisplay}</span></div>`;
         }
         else if (activeTemplateType === 'analog-pure') {
             canvas.innerHTML = `
@@ -393,13 +400,13 @@
         let t = getPhoneTimeDetails();
         const temp = document.getElementById('temp-input').value;
 
-        let commandPacket = `UPDATE_TEMPLATE|TYPE:${activeTemplateType}|HOUR:${t.hour}|MIN:${t.min}|DAY:${t.day}|DATE:${t.date}|LUNAR:${t.lunar}|TEMP:${temp}|VOL:${hardwareVoltageValue}`;
+        let commandPacket = `UPDATE_TEMPLATE|TYPE:${activeTemplateType}|HOUR:${t.hour}|MIN:${t.min}|DAY:${t.day}|DATE:${t.date}|LUNAR:${t.lunar || "N/A"}|TEMP:${temp}|VOL:${hardwareVoltageValue}`;
         
         try {
             let encoder = new TextEncoder();
             await bleCharacteristic.writeValue(encoder.encode(commandPacket + '\n'));
             logMessage(`Đã nạp thành công diện mạo [${activeTemplateType.toUpperCase()}] xuống mạch.`);
-            alert("Đã đồng bộ giao diện lịch tháng phối hợp đồng hồ kim thành công!");
+            alert("Đã đồng bộ giao diện đồng hồ lật cải tiến xuống màn hình!");
         } catch (error) { logMessage("Lỗi truyền dữ liệu: " + error.message); }
     }
 
