@@ -262,6 +262,19 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
         }
+        
+        /* Trạng thái Log hệ thống */
+        .log-box {
+            margin-top: 15px;
+            background: #222;
+            color: #22ff22;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -304,6 +317,10 @@
     
     <div id="khung-xem-truoc"></div>
 
+    <button class="btn btn-green" id="btn-transfer-data" style="width:100%; margin-top:5px; margin-bottom:15px; background-color: var(--blue-color);">
+        ĐỒNG BỘ GIỜ ĐIỆN THOẠI XUỐNG MÀN HÌNH
+    </button>
+
     <div class="adjustment-box">
         <div class="input-row">
             <label>Dương Lịch:</label>
@@ -319,15 +336,25 @@
         </div>
         <div class="input-row">
             <label>Hiệu chỉnh nhiệt độ (°C):</label>
-            <input type="number" value="30">
+            <input type="number" id="input-nhiet-do" value="30">
         </div>
+    </div>
+
+    <div class="log-box" id="system-log">
+        Hệ thống: Sẵn sàng nạp dữ liệu thời gian thực.<br>
+        • Chưa kết nối thiết bị Bluetooth.
     </div>
 
     <script>
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // Kho dữ liệu các câu nói truyền cảm hứng ngắn gọn cho ngày thường
+        // Cấu hình định danh UUID cho dịch vụ Bluetooth thực tế
+        const BLE_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+        const BLE_CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+        let bluetoothDevice = null;
+        let bleCharacteristic = null;
+
         const dailyQuotes = [
             "Hành trình vạn dặm bắt đầu từ một bước chân.",
             "Hôm nay là một ngày tuyệt vời để cố gắng.",
@@ -341,7 +368,15 @@
             "Hãy làm việc khi người khác đang mơ mộng."
         ];
 
-        // Hàm tính toán dữ liệu thời gian hệ thống và dịch lịch âm an toàn
+        function logToSystem(text) {
+            const logBox = document.getElementById("system-log");
+            if(logBox) {
+                logBox.innerHTML += `<br>• ${text}`;
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        }
+
+        // Hàm lấy và định dạng dữ liệu thời gian hệ thống
         function getPhoneTimeDetails() {
             let now = new Date();
             let hh = now.getHours();
@@ -371,12 +406,12 @@
 
             return { 
                 year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(),
-                hourRaw: hh, minRaw: mm, secRaw: ss, 
+                hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(),
                 hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText
             };
         }
 
-        // Hàm vẽ ma trận lịch tháng 5 (Đầy đủ ngày Dương to và ngày Âm nhỏ)
+        // Hàm vẽ lưới lịch tháng cho Mẫu 5
         function generateCalendarGrid(year, month, currentDay) {
             let firstDay = new Date(year, month - 1, 1).getDay();
             let daysInMonth = new Date(year, month, 0).getDate();
@@ -421,7 +456,7 @@
             return html;
         }
 
-        // Hàm xử lý xuất giao diện hiển thị chính
+        // Hàm hiển thị giao diện xem trước
         function renderTemplate() {
             const timeData = getPhoneTimeDetails();
             
@@ -433,9 +468,10 @@
             if (!previewContainer) return;
 
             let templateHTML = "";
+            let currentTemp = document.getElementById("input-nhiet-do") ? document.getElementById("input-nhiet-do").value : 30;
 
             switch (currentTemplateIndex) {
-                case 1: // Mẫu 1: Đồng hồ lật dài
+                case 1:
                     templateHTML = `
                         <div class="template-box">
                             <div class="header-row">
@@ -451,13 +487,13 @@
                             </div>
                             <div class="footer-row">
                                 <span>🌙 ${timeData.lunar}</span>
-                                <span>🌡️ 30°C</span>
+                                <span>🌡️ ${currentTemp}°C</span>
                             </div>
                         </div>
                     `;
                     break;
 
-                case 2: // Mẫu 2: Lịch số khổng lồ
+                case 2:
                     templateHTML = `
                         <div class="template-box" style="text-align:center;">
                             <div class="header-row">${timeData.day} - ${timeData.date}</div>
@@ -470,7 +506,7 @@
                     `;
                     break;
 
-                case 3: // Mẫu 3: Số hiện đại to
+                case 3:
                     templateHTML = `
                         <div class="template-box" style="align-items:center; justify-content:center; gap:10px;">
                             <div style="font-size:50px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
@@ -482,7 +518,7 @@
                     `;
                     break;
 
-                case 4: // Mẫu 4: Lịch Âm Dương Rõ
+                case 4:
                     templateHTML = `
                         <div class="template-box" style="justify-content:center; gap:15px; text-align:center;">
                             <div style="font-size:16px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
@@ -494,10 +530,8 @@
                     `;
                     break;
 
-                case 5: // Mẫu 5: Lịch 1 tháng tích hợp Ngày lễ & Câu nói hay dưới đáy
+                case 5:
                     let footerText = "";
-
-                    // Kiểm tra ngày Lễ Dương lịch
                     if (timeData.month === 1 && timeData.dayRaw === 1) {
                         footerText = "🎉 Chúc Mừng Năm Mới (Tết Dương Lịch) 🎉";
                     } else if (timeData.month === 4 && timeData.dayRaw === 30) {
@@ -507,7 +541,6 @@
                     } else if (timeData.month === 9 && timeData.dayRaw === 2) {
                         footerText = "🇻🇳 Ngày Quốc Khánh Việt Nam 02/09 🇻🇳";
                     } else {
-                        // Kiểm tra tiếp ngày Lễ Âm lịch
                         if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
                             try {
                                 let currentLunar = LunarCalendar.solarToLunar(timeData.year, timeData.month, timeData.dayRaw);
@@ -522,7 +555,6 @@
                                     footerText = "🌾 Ngày Giỗ Tổ Hùng Vương (10/03) 🌾";
                                 } else if (lMonth === 4 && lDay === 15) {
                                     footerText = "🪷 Đại Lễ Phật Đản (15/04) 🪷";
-                                    // Tự động kiểm tra cho hôm nay ngày 5/6/2026 dương lịch nhằm rằm 21/04 âm lịch
                                 } else if (lMonth === 4 && lDay === 21) {
                                     footerText = "🌙 Ngày rằm Âm Lịch: 21 tháng Tư 🌙";
                                 } else if (lMonth === 5 && lDay === 5) {
@@ -538,7 +570,6 @@
                         }
                     }
 
-                    // Nếu ngày bình thường, lấy câu nói hay ngẫu nhiên theo ngày
                     if (footerText === "") {
                         let quoteIndex = timeData.dayRaw % dailyQuotes.length;
                         footerText = `"${dailyQuotes[quoteIndex]}"`;
@@ -548,7 +579,7 @@
                         <div class="template-box">
                             <div class="header-row">
                                 <span>Tháng ${timeData.month} / ${timeData.year}</span>
-                                <span>🌡️ 30°C</span>
+                                <span>🌡️ ${currentTemp}°C</span>
                             </div>
                             
                             <div class="month-split-container">
@@ -576,7 +607,7 @@
                     `;
                     break;
 
-                case 6: // Mẫu 6: Mặt đồng hồ kim tròn lớn phóng to
+                case 6:
                     templateHTML = `
                         <div class="template-box" style="align-items:center; justify-content:center;">
                             <div class="analog-dial" style="width:160px; height:160px;">
@@ -597,7 +628,70 @@
             previewContainer.innerHTML = templateHTML;
         }
 
-        // Bắt sự kiện chuyển đổi mẫu trực tiếp
+        // Logic kết nối Web Bluetooth thực tế
+        async function connectBluetooth() {
+            try {
+                logToSystem("Đang mở trình quét thiết bị Bluetooth...");
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [BLE_SERVICE_UUID] }]
+                });
+
+                logToSystem(`Đã chọn thiết bị: ${bluetoothDevice.name}`);
+                const server = await bluetoothDevice.gatt.connect();
+                
+                logToSystem("Đang kết nối vào GATT Server...");
+                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+                
+                bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
+                logToSystem("Kết nối thành công! Đã tìm thấy Characteristic truyền dữ liệu.");
+                alert(`Đã kết nối thành công tới: ${bluetoothDevice.name}`);
+            } catch (error) {
+                logToSystem(`Lỗi kết nối: ${error.message}`);
+                alert(`Không thể kết nối Bluetooth: ${error.message}`);
+            }
+        }
+
+        // Đóng gói mảng Byte cấu trúc và đẩy xuống phần cứng qua Bluetooth
+        async function transferDataToHardware() {
+            if (!bleCharacteristic) {
+                alert("Vui lòng bấm nút 'Kết nối Bluetooth' trước khi thực hiện đồng bộ!");
+                return;
+            }
+
+            try {
+                const t = getPhoneTimeDetails();
+                let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
+
+                // Tạo mảng gói tin dữ liệu hex cơ bản truyền xuống mạch ESP32/Mạch nhận
+                // Byte 0: Header (0xAA)
+                // Byte 1: Mẫu mặt đồng hồ hiện tại (1-6)
+                // Byte 2-7: Năm, Tháng, Ngày, Giờ, Phút, Thứ
+                // Byte 8: Nhiệt độ hiệu chỉnh
+                // Byte 9: Checksum hoặc Footer (0xBB)
+                let dataBuffer = new Uint8Array([
+                    0xAA, 
+                    currentTemplateIndex,
+                    t.year % 100,
+                    t.month,
+                    t.dayRaw,
+                    t.hourRaw,
+                    t.minRaw,
+                    t.dayOfWeekRaw,
+                    tempVal,
+                    0xBB
+                ]);
+
+                logToSystem(`Đang chuẩn bị đóng gói dữ liệu cho Mẫu ${currentTemplateIndex}...`);
+                await bleCharacteristic.writeValue(dataBuffer);
+                
+                logToSystem(`Đã truyền thành công gói tin thời gian thực xuống màn hình E-Paper!`);
+                alert("Đồng bộ thời gian và giao diện xuống màn hình thành công!");
+            } catch (error) {
+                logToSystem(`Lỗi đồng bộ dữ liệu: ${error.message}`);
+                alert(`Gặp lỗi khi gửi dữ liệu: ${error.message}`);
+            }
+        }
+
         function setupTemplateSelection() {
             const templates = document.querySelectorAll(".template-card-item");
             templates.forEach((card, index) => {
@@ -605,12 +699,12 @@
                     templates.forEach(c => c.classList.remove("selected-active"));
                     card.classList.add("selected-active");
                     currentTemplateIndex = index + 1;
+                    logToSystem(`Đã chuyển đổi sang hiển thị Mẫu ${currentTemplateIndex}`);
                     renderTemplate();
                 });
             });
         }
 
-        // Khởi động đồng bộ tức thì
         window.onload = function() {
             setupTemplateSelection();
             renderTemplate(); 
@@ -619,13 +713,25 @@
                 renderTemplate(); 
             }, 1000);
 
-            const btnSync = document.getElementById("btn-sync-hardware");
-            if(btnSync) {
-                btnSync.addEventListener("click", () => {
-                    alert("Đang kết nối Bluetooth và đóng gói dữ liệu màn hình 2.9 inch...");
-                });
+            // Gắn lại sự kiện thực tế cho nút kết nối Bluetooth
+            const btnConnect = document.getElementById("btn-sync-hardware");
+            if(btnConnect) {
+                btnConnect.addEventListener("click", connectBluetooth);
+            }
+
+            // Gắn sự kiện thực tế cho nút đồng bộ dữ liệu xuống màn hình
+            const btnTransfer = document.getElementById("btn-transfer-data");
+            if(btnTransfer) {
+                btnTransfer.addEventListener("click", transferDataToHardware);
+            }
+            
+            // Lắng nghe thay đổi nhiệt độ để cập nhật trực tiếp lên preview
+            const inputTemp = document.getElementById("input-nhiet-do");
+            if(inputTemp) {
+                inputTemp.addEventListener("input", renderTemplate);
             }
         };
     </script>
 </body>
 </html>
+
