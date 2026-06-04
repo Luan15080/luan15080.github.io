@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper - Đồng Bộ Giờ Điện Thoại Tự Động</title>
+    <title>Thẻ E-Paper - Đồng Hồ Số Lớn & Nhiệt Độ</title>
     <style>
         :root { --primary-green: #4CAF50; --active-blue: #3f51b5; }
         body { font-family: Arial, sans-serif; margin: 0; padding: 5px; background-color: #f9f9f9; font-size: 12px; }
@@ -23,8 +23,8 @@
         .btn-gray { background-color: #6c757d; }
         .btn-blue { background-color: #2196F3; }
         
-        input[type="number"] { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px; }
-        label { font-weight: bold; display: block; margin-bottom: 3px; color: #333; }
+        input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 2px solid #ccc; border-radius: 4px; margin-bottom: 6px; font-size: 14px; font-weight: bold; }
+        label { font-weight: bold; display: block; margin-bottom: 4px; color: #333; font-size: 12px; }
 
         .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .template-card { border: 2px solid #ccc; border-radius: 6px; padding: 8px; background: #fdfdfd; cursor: pointer; text-align: center; transition: all 0.2s ease; position: relative; }
@@ -33,12 +33,19 @@
         
         .mini-preview { background: #fff; border: 1px solid #aaa; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 9px; pointer-events: none; height: 50px; display: flex; flex-direction: column; justify-content: space-between; }
 
-        .preview-box { width: 100%; max-width: 400px; min-height: 180px; border: 2px solid #111; margin: 10px auto; background: #fff; padding: 15px; box-sizing: border-box; position: relative; border-radius: 4px; color: #000; font-family: monospace; }
-        .flip-layout { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 15px 0; }
-        .flip-card { background: #111; color: #fff; font-size: 42px; font-weight: bold; padding: 4px 8px; border-radius: 5px; min-width: 45px; text-align: center; }
-        .huge-date { font-size: 55px; font-weight: bold; text-align: center; margin: 10px 0; }
-        .sub-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
-        .top-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px; }
+        /* KHUNG XEM TRƯỚC LỚN - CÂN ĐỐI TOÀN MÀN HÌNH */
+        .preview-box { width: 100%; max-width: 400px; min-height: 210px; border: 3px solid #000; margin: 10px auto; background: #fff; padding: 14px; box-sizing: border-box; position: relative; border-radius: 4px; color: #000; font-family: monospace; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        /* ĐỒNG HỒ LẬT CỠ LỚN */
+        .flip-layout { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 8px 0; }
+        .flip-card { background: #000; color: #fff; font-size: 58px; font-weight: bold; padding: 6px 10px; border-radius: 6px; min-width: 55px; text-align: center; }
+        
+        /* CHỮ SỐ LỊCH TOÀN MÀN HÌNH */
+        .huge-date { font-size: 90px; font-weight: 900; text-align: center; line-height: 1; margin: 2px 0; color: #000; font-family: Arial, sans-serif; }
+        
+        /* THANH TIÊU ĐỀ VÀ THÔNG TIN DƯỚI (CHỮ TO, ĐẬM) */
+        .top-info { display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 4px; }
+        .sub-info { display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; }
 
         #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 90px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #333; margin-top: 10px; border-left: 3px solid #3f51b5; }
     </style>
@@ -70,63 +77,55 @@
         <h3>Chạm Trực Tiếp Để Chọn Mặt Màn Hình</h3>
         
         <div class="template-grid">
-            <div class="template-card selected" id="card-flip" onclick="selectTemplateVisual('flip')">
-                <div class="card-title">Mẫu 1: Đồng Hồ Lật</div>
+            <div class="template-card" id="card-flip" onclick="selectTemplateVisual('flip')">
+                <div class="card-title">Mẫu 1: Đồng Hồ Lật Lớn</div>
                 <div class="mini-preview" style="background: #eee;">
-                    <div style="display:flex; justify-content:space-between; font-size:7px;"><span>Thứ Sáu</span><span>3.7V</span></div>
-                    <div style="text-align:center; font-weight:bold; font-size:14px; margin:2px 0; background:#333; color:#fff; border-radius:2px;">12:30</div>
-                    <div style="font-size:7px; text-align:left;">Âm Lịch 21/04</div>
+                    <div style="text-align:center; font-weight:bold; font-size:14px; background:#000; color:#fff;">12:30</div>
                 </div>
             </div>
-            <div class="template-card" id="card-calendar" onclick="selectTemplateVisual('calendar')">
-                <div class="card-title">Mẫu 2: Lịch Tối Giản</div>
+            <div class="template-card selected" id="card-calendar" onclick="selectTemplateVisual('calendar')">
+                <div class="card-title">Mẫu 2: Lịch Số Khổng Lồ</div>
                 <div class="mini-preview">
-                    <div style="text-align:center; font-size:7px; border-bottom:1px solid #000;">Thứ Sáu - 05/06</div>
-                    <div style="text-align:center; font-size:18px; font-weight:bold;">05</div>
-                    <div style="display:flex; justify-content:space-between; font-size:6px;"><span>Âm 21</span><span>12:30</span></div>
+                    <div style="text-align:center; font-size:18px; font-weight:bold; color:#000;">05</div>
                 </div>
             </div>
             <div class="template-card" id="card-modern" onclick="selectTemplateVisual('modern')">
-                <div class="card-title">Mẫu 3: Số Hiện Đại</div>
+                <div class="card-title">Mẫu 3: Số Hiện Đại To</div>
                 <div class="mini-preview">
-                    <div style="text-align:center; font-weight:bold; font-size:12px;">12:30</div>
-                    <div style="background:#000; color:#fff; text-align:center; font-size:7px;">05/06 | Thứ Sáu</div>
-                    <div style="font-size:6px; text-align:right;">Pin: 3.7V</div>
+                    <div style="text-align:center; font-weight:bold; font-size:14px;">12:30</div>
                 </div>
             </div>
             <div class="template-card" id="card-lunar" onclick="selectTemplateVisual('lunar')">
-                <div class="card-title">Mẫu 4: Lịch Âm Dương</div>
+                <div class="card-title">Mẫu 4: Lịch Âm Dương Rõ</div>
                 <div class="mini-preview">
-                    <div style="display:flex; justify-content:space-between; font-size:6px;"><span>DƯƠNG LỊCH</span><span>12:30</span></div>
-                    <div style="font-size:7px; font-weight:bold;">Ngày: 05/06/2026</div>
-                    <div style="font-size:8px; font-weight:bold; color:red;">Âm Lịch 21/04</div>
+                    <div style="font-size:8px; font-weight:bold; color:red; text-align:center;">ÂM LỊCH</div>
                 </div>
             </div>
         </div>
 
-        <h3>Khung Xem Trước (Đồng Bộ Theo Điện Thoại)</h3>
+        <h3>Khung Xem Trước (Đã Tích Hợp Đo Nhiệt Độ)</h3>
         <div class="preview-box" id="canvas-preview"></div>
 
         <div style="border: 1px solid #ddd; padding: 10px; background: #fff; border-radius: 4px; margin-top: 10px;">
-            <label>Nhiệt độ môi trường nhập tay (°C):</label>
+            <label>Hiệu chỉnh nhiệt độ môi trường (°C):</label>
             <input type="number" id="temp-input" value="30" oninput="renderTemplate()">
 
             <div style="background: #fff8e1; padding: 8px; border-radius: 4px; font-size: 11px; color: #b78103; margin-top: 5px; font-weight: bold;">
-                ⚡ Hệ thống sẽ tự bốc Ngày, Giờ, Thứ và Lịch Âm từ điện thoại của anh khi bấm nút nạp bên dưới.
+                ⚡ Hệ thống tự động đồng bộ thời gian từ điện thoại và truyền thông số nhiệt độ xuống mạch.
             </div>
 
-            <button class="btn btn-blue btn-block" style="margin-top:12px; padding:12px; font-size:14px;" onclick="uploadTemplateWithPhoneTime()">ĐỒNG BỘ GIỜ ĐIỆN THOẠI XUỐNG MÀN HÌNH</button>
+            <button class="btn btn-blue btn-block" style="margin-top:12px; padding:14px; font-size:15px;" onclick="uploadTemplateWithPhoneTime()">ĐỒNG BỘ XUỐNG MÀN HÌNH MÁY</button>
         </div>
     </div>
 
-    <div id="log-terminal">Hệ thống: Sẵn sàng nạp dữ liệu thời gian thực.</div>
+    <div id="log-terminal">Hệ thống: Sẵn sàng tải cấu hình chữ to + tích hợp đo nhiệt độ.</div>
 </div>
 
 <script>
     let bleDevice = null;
     let bleCharacteristic = null;
     let hardwareVoltageValue = "3.1V"; 
-    let activeTemplateType = "flip";
+    let activeTemplateType = "calendar";
 
     const UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
     const UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
@@ -152,28 +151,24 @@
 
     function clearLog() { document.getElementById('log-terminal').innerHTML = "Nhật ký:"; }
 
-    // HÀM TỰ ĐỘNG TÍNH TOÁN THỜI GIAN THỰC TẾ TRÊN ĐIỆN THOẠI
     function getPhoneTimeDetails() {
         let now = new Date();
         let hh = String(now.getHours()).padStart(2, '0');
         let mm = String(now.getMinutes()).padStart(2, '0');
-        
         let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
         let dayStr = daysOfWeek[now.getDay()];
 
-        // Tính lịch âm tự động bằng thư viện nhúng ngoài
         let lunarText = "Âm Lịch";
         if (typeof LunarCalendar !== 'undefined') {
             let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-            lunarText = `Âm Lịch ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+            lunarText = `Âm ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
         } else {
-            lunarText = "Âm Lịch 21/04"; // Dự phòng nếu mất mạng không tải được thư viện
+            lunarText = "Âm 21/04";
         }
 
         return { hour: hh, min: mm, date: dateStr, day: dayStr, lunar: lunarText };
     }
 
-    // VẼ KHUNG XEM TRƯỚC LIÊN TỤC THEO ĐIỆN THOẠI
     setInterval(() => {
         if (document.getElementById('tab-designer').style.display === "block") {
             renderTemplate();
@@ -188,47 +183,47 @@
         renderTemplate();
     }
 
+    // ĐÃ CHÈN BIẾN NHIỆT ĐỘ TRỰC TIẾP VÀO TOÀN BỘ CÁC MẪU
     function renderTemplate() {
         const canvas = document.getElementById('canvas-preview');
         if(!canvas) return;
         
         let t = getPhoneTimeDetails();
         const temp = document.getElementById('temp-input').value + "°C";
-        let volDisplay = "🔋 " + hardwareVoltageValue;
+        let volDisplay = hardwareVoltageValue;
 
         if (activeTemplateType === 'flip') {
             canvas.innerHTML = `
-                <div class="top-info"><span>${t.day}</span><span>${t.date}</span><span>${volDisplay}</span></div>
+                <div class="top-info"><span>${t.day} - ${t.date.substring(0,5)}</span><span>🔋 ${volDisplay}</span></div>
                 <div class="flip-layout">
                     <div class="flip-card">${t.hour[0]}</div><div class="flip-card">${t.hour[1]}</div>
-                    <span style="font-size:30px;font-weight:bold;align-self:center;">:</span>
+                    <span style="font-size:45px;font-weight:bold;align-self:center;margin:0 2px;">:</span>
                     <div class="flip-card">${t.min[0]}</div><div class="flip-card">${t.min[1]}</div>
                 </div>
-                <div class="sub-info"><span>${t.lunar}</span><span>${temp}</span></div>`;
+                <div class="sub-info"><span>${t.lunar}</span><span>🌡️ ${temp}</span></div>`;
         } 
         else if (activeTemplateType === 'calendar') {
             canvas.innerHTML = `
-                <div class="top-info" style="justify-content:center; font-size:14px;">${t.day} - ${t.date.substring(0,5)}</div>
+                <div class="top-info"><span>📅 DƯƠNG LỊCH</span><span>${t.day} - ${t.date.substring(0,5)}</span></div>
                 <div class="huge-date">${t.date.substring(0,2)}</div>
-                <div class="sub-info"><span>${t.lunar}</span><span>Giờ: ${t.hour}:${t.min}</span><span>${volDisplay}</span></div>`;
+                <div class="sub-info"><span>🌙 ${t.lunar}</span><span>🌡️ ${temp}</span><span>🔋 ${volDisplay}</span></div>`;
         } 
         else if (activeTemplateType === 'modern') {
             canvas.innerHTML = `
-                <div style="text-align:center; font-size:20px; font-weight:bold; margin-top:10px;">${t.hour}:${t.min}</div>
-                <div style="text-align:center; font-size:13px; margin:10px 0; background:#000; color:#fff; padding:3px; border-radius:3px;">${t.day} | ${t.date}</div>
-                <div class="sub-info"><span>${t.lunar}</span><span>Nguồn cấp: ${volDisplay}</span></div>`;
+                <div style="text-align:center; font-size:48px; font-weight:bold; margin:12px 0 2px 0; letter-spacing:2px;">${t.hour}:${t.min}</div>
+                <div style="text-align:center; font-size:16px; font-weight:bold; background:#000; color:#fff; padding:6px; margin:5px 0; border-radius:3px; letter-spacing:1px;">${t.day} | ${t.date}</div>
+                <div class="sub-info"><span>${t.lunar}</span><span>🌡️ ${temp}</span><span>Pin: ${volDisplay}</span></div>`;
         } 
         else if (activeTemplateType === 'lunar') {
             canvas.innerHTML = `
-                <div class="top-info"><span>DƯƠNG LỊCH</span><span>${t.hour}:${t.min}</span></div>
-                <div style="font-size:16px; font-weight:bold; margin:5px 0;">Ngày: ${t.date} (${t.day})</div>
-                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
-                <div style="font-size:18px; font-weight:bold; color:red; margin-bottom:5px;">${t.lunar}</div>
-                <div class="sub-info"><span>Điện áp: ${volDisplay}</span><span>${temp}</span></div>`;
+                <div class="top-info"><span>HỆ THỐNG THỜI GIAN</span><span>🌡️ ${temp}</span></div>
+                <div style="font-size:20px; font-weight:bold; margin:12px 0 4px 0; text-align:center;">Dương: Ngày ${t.date.substring(0,5)} (${t.day})</div>
+                <div style="border-top:2px dashed #000; margin:6px 0("更新");"></div>
+                <div style="font-size:24px; font-weight:bold; color:#000; margin:4px 0 12px 0; text-align:center;">★ ${t.lunar.toUpperCase()} ★</div>
+                <div class="sub-info"><span>Nguồn: ${volDisplay}</span><span>⏱ Giờ: ${t.hour}:${t.min}</span></div>`;
         }
     }
 
-    // KẾT NỐI BLUETOOTH
     async function scanBluetoothDevice() {
         logMessage("Đang quét tìm màn hình E-Paper...");
         if (!navigator.bluetooth) { alert("Trình duyệt không hỗ trợ Bluetooth BLE!"); return; }
@@ -253,7 +248,7 @@
         let value = event.target.value;
         let decoder = new TextDecoder('utf-8');
         let receivedString = decoder.decode(value).trim();
-        logMessage("Điện áp mạch gửi lên: " + receivedString);
+        logMessage("Dữ liệu nhận từ mạch: " + receivedString);
 
         if (receivedString.toUpperCase().includes("V")) {
             let cleanVol = receivedString.replace("VOL:", "").trim(); 
@@ -263,22 +258,19 @@
         }
     }
 
-    // HÀM BẤM NẠP TỰ ĐỘNG LẤY GIỜ ĐIỆN THOẠI TRUYỀN ĐI
     async function uploadTemplateWithPhoneTime() {
         if (!bleCharacteristic) { alert("Vui lòng kết nối Bluetooth trước khi nạp!"); return; }
-        
-        // B bốc dữ liệu thời gian thực lúc bấm nút
         let t = getPhoneTimeDetails();
         const temp = document.getElementById('temp-input').value;
 
-        // Đóng gói lệnh gửi dữ liệu thời gian chính xác của điện thoại xuống mạch ESP32
+        // Đóng gói đầy đủ lệnh gửi bao gồm cả tham số nhiệt độ TEMP xuống ESP32
         let commandPacket = `UPDATE_TEMPLATE|TYPE:${activeTemplateType}|HOUR:${t.hour}|MIN:${t.min}|DAY:${t.day}|DATE:${t.date}|LUNAR:${t.lunar}|TEMP:${temp}|VOL:${hardwareVoltageValue}`;
         
         try {
             let encoder = new TextEncoder();
             await bleCharacteristic.writeValue(encoder.encode(commandPacket + '\n'));
-            logMessage(`Đã truyền tải toàn bộ giờ giấc của điện thoại [${t.hour}:${t.min}] xuống màn hình.`);
-            alert("Đã đồng bộ thời gian từ điện thoại thành công!");
+            logMessage(`Đã nạp thành công: Giờ [${t.hour}:${t.min}] - Nhiệt độ [${temp}°C] xuống mạch.`);
+            alert("Đã đồng bộ thời gian và nhiệt độ thành công!");
         } catch (error) { logMessage("Lỗi truyền dữ liệu: " + error.message); }
     }
 
@@ -290,4 +282,3 @@
 </script>
 </body>
 </html>
-
