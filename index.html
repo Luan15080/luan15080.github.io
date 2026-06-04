@@ -36,26 +36,23 @@
         /* KHUNG XEM TRƯỚC THỰC TẾ */
         .preview-box { width: 100%; max-width: 420px; min-height: 240px; border: 3px solid #000; margin: 10px auto; background: #fff; padding: 10px; box-sizing: border-box; position: relative; border-radius: 4px; color: #000; font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: space-between; }
         
-        /* Layout cấu trúc mẫu 5 tối ưu */
-        .split-layout { display: flex; width: 100%; height: 100%; justify-content: space-between; align-items: center; gap: 8px; flex: 1; margin: 4px 0; }
-        .split-left { flex: 1.3; display: flex; flex-direction: column; justify-content: center; border-right: 1px dashed #000; padding-right: 8px; height: 100%; }
-        .split-right { flex: 0.7; display: flex; justify-content: center; align-items: center; padding-left: 4px; }
+        /* Layout cấu trúc mẫu 5 */
+        .split-layout { display: flex; width: 100%; height: 100%; justify-content: space-between; align-items: center; gap: 8px; flex: 1; margin: 6px 0; }
+        .split-left { flex: 1.25; display: flex; flex-direction: column; justify-content: center; border-right: 1px dashed #000; padding-right: 8px; height: 100%; }
+        .split-right { flex: 0.75; display: flex; justify-content: center; align-items: center; padding-left: 4px; }
 
-        /* Bảng lịch tháng tối ưu song song Âm - Dương */
+        /* Bảng lịch tháng */
         .month-calendar-table { width: 100%; border-collapse: collapse; text-align: center; }
         .month-calendar-table th { font-size: 9px; font-weight: bold; padding: 2px 0; border-bottom: 1px solid #000; width: 14.28%; }
         .month-calendar-table td { padding: 3px 1px; position: relative; height: 24px; width: 14.28%; vertical-align: top; }
         
-        /* Định dạng số ngày */
         .day-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 3px; padding: 1px 0; }
         .solar-num { font-size: 11px; font-weight: bold; line-height: 1; }
         .lunar-num { font-size: 7.5px; color: #555; font-weight: normal; margin-top: 1px; }
         
-        /* Đánh dấu ngày hiện tại */
         .today-box { background: #000; color: #fff; border-radius: 3px; font-weight: bold; }
         .today-box .lunar-num { color: #fff; font-weight: bold; }
 
-        /* Thiết kế đồng hồ lật và các chi tiết phụ */
         .flip-layout { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 8px 0; }
         .flip-card { background: #000; color: #fff; font-size: 58px; font-weight: bold; padding: 6px 10px; border-radius: 6px; min-width: 55px; text-align: center; }
         .huge-date { font-size: 90px; font-weight: 900; text-align: center; line-height: 1; margin: 2px 0; }
@@ -75,6 +72,7 @@
         <button class="tab-link" onclick="openTab(event, 'tab-designer')">Kho Mẫu Đồng Hồ</button>
     </div>
 
+    <!-- TAB 1 -->
     <div id="tab-setting" class="tab-content active">
         <h3>Bộ điều khiển thiết bị E-Paper</h3>
         <div class="grid-2">
@@ -89,6 +87,7 @@
         <button class="btn btn-block btn-gray" onclick="clearLog()">Xóa nhật ký hệ thống</button>
     </div>
 
+    <!-- TAB 2 -->
     <div id="tab-designer" class="tab-content">
         <h3>Chạm Trực Tiếp Để Chọn Mặt Màn Hình</h3>
         
@@ -180,7 +179,7 @@
         let lunarText = "Âm Lịch";
         if (typeof LunarCalendar !== 'undefined') {
             let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-            lunarText = `Âm ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+            lunarText = `Mùng ${String(lunar.lunarDay).padStart(2, '0')} - Tháng ${String(lunar.lunarMonth).padStart(2, '0')} (Âm Lịch)`;
         }
 
         return { 
@@ -192,18 +191,14 @@
         };
     }
 
-    // Hàm sinh bảng lịch tháng thông minh tích hợp Âm Dương song song
     function generateFullMonthCalendarHTML(year, month, currentDay) {
         let firstDayIndex = new Date(year, month - 1, 1).getDay(); 
-        // Chuyển đổi Chủ nhật (0) thành vị trí cuối cùng hoặc đồng bộ theo cột: T2, T3, T4, T5, T6, T7, CN
-        // Chỉ số map tương ứng: T2=1, T3=2... T7=6, CN=0. Sắp xếp lại để T2 đứng đầu:
         let startColumn = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
-        
         let daysInMonth = new Date(year, month, 0).getDate();
+        
         let html = `<table class="month-calendar-table">`;
         html += `<tr><th>T2</th><th>T3</th><th>T4</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th></tr><tr>`;
         
-        // Vẽ các ô trống đầu tháng
         for (let i = 0; i < startColumn; i++) {
             html += `<td></td>`;
         }
@@ -215,11 +210,9 @@
                 colCount = 0;
             }
             
-            // Tính toán ngày âm tương ứng cho từng ngày trong tháng bằng thư viện
             let lunarDayStr = "";
             if (typeof LunarCalendar !== 'undefined') {
                 let lData = LunarCalendar.solarToLunar(year, month, d);
-                // Nếu là ngày mùng 1 đầu tháng âm lịch thì hiển thị cả Ngày/Tháng âm (Ví dụ: 1/5), ngược lại chỉ hiện Ngày (Ví dụ: 02)
                 lunarDayStr = lData.lunarDay === 1 ? `${lData.lunarDay}/${lData.lunarMonth}` : String(lData.lunarDay).padStart(2, '0');
             } else {
                 lunarDayStr = String(d).padStart(2, '0');
@@ -238,7 +231,6 @@
             colCount++;
         }
         
-        // Điền nốt ô trống cuối tháng
         while (colCount < 7) {
             html += `<td></td>`;
             colCount++;
@@ -248,7 +240,6 @@
         return html;
     }
 
-    // Hàm sinh SVG mặt đồng hồ kim động chuẩn xác
     function generateAnalogClockSVG(h, m, s, size=110) {
         let angleH = (h % 12) * 30 + m * 0.5;
         let angleM = m * 6;
@@ -334,10 +325,13 @@
                 <div style="font-size:22px; font-weight:bold; margin:4px 0 10px 0; text-align:center;">★ ${t.lunar.toUpperCase()} ★</div>
                 <div class="sub-info"><span>Nguồn: ${volDisplay}</span><span>⏱ Giờ: ${t.hour}:${t.min}</span></div>`;
         }
-        // TỐI ƯU MẪU 5: LỊCH TOÀN BỘ THÁNG (ÂM DƯƠNG SONG SONG) BÊN TRÁI - ĐỒNG HỒ KIM BÊN PHẢI
+        // CẬP NHẬT THEO Ý ANH LUÂN: THỨ, NGÀY, THÁNG, NĂM ĐƯA LÊN TRÊN CÙNG
         else if (activeTemplateType === 'analog-split') {
             canvas.innerHTML = `
-                <div class="top-info"><span>Tháng ${t.month} / ${t.year}</span><span>🌡️ ${temp}</span></div>
+                <div class="top-info">
+                    <span>${t.day}, Ngày ${t.date}</span>
+                    <span>🌡️ ${temp}</span>
+                </div>
                 <div class="split-layout">
                     <div class="split-left">
                         ${generateFullMonthCalendarHTML(t.year, t.month, t.dayRaw)}
@@ -346,7 +340,10 @@
                         ${generateAnalogClockSVG(t.hourRaw, t.minRaw, t.secRaw, 115)}
                     </div>
                 </div>
-                <div class="sub-info"><span>Hôm nay: ${t.day} (${t.lunar})</span><span>🔋 Pin: ${volDisplay}</span></div>`;
+                <div class="sub-info">
+                    <span>🌙 ${t.lunar}</span>
+                    <span>🔋 Pin: ${volDisplay}</span>
+                </div>`;
         }
         else if (activeTemplateType === 'analog-pure') {
             canvas.innerHTML = `
