@@ -3,29 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper 2.9" - Đồng Bộ</title>
+    <title>Thẻ E-Paper 2.9" - Full Code</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
     <style>
-        :root {
-            --btn-green: #4CAF50;
-            --btn-yellow: #FFC107;
-            --btn-red: #F44336;
-        }
+        :root { --btn-green: #4CAF50; --btn-yellow: #FFC107; --btn-red: #F44336; --blue-active: #2196F3; }
         body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
         
-        /* CSS cho nút kết nối duy nhất */
-        .btn-main {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            color: white;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.3s;
-        }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; color: white; cursor: pointer; text-align: center; margin-bottom: 10px; transition: 0.3s; }
         .state-idle { background-color: var(--btn-green); }
         .state-connecting { background-color: var(--btn-yellow); color: #333; }
         .state-connected { background-color: var(--btn-green); filter: brightness(1.2); }
@@ -33,112 +17,11 @@
 
         .section-title { font-weight: bold; margin: 15px 0 10px; border-left: 4px solid #333; padding-left: 8px; }
         .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; }
-        .card.active { border-color: #2196F3; background: #e3f2fd; }
+        .card { background: white; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; }
+        .card.active { border-color: var(--blue-active); background: #e3f2fd; }
         
-        #khung-xem-truoc { 
-            border: 3px solid #000; border-radius: 8px; background: white; 
-            min-height: 250px; padding: 10px; display: flex; flex-direction: column; 
-        }
-        .global-quote { 
-            margin-top: auto; border-top: 1px solid #000; padding-top: 5px; 
-            text-align: center; font-style: italic; font-weight: bold; font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-
-    <button id="btn-bluetooth" class="btn-main state-idle">Kết nối Bluetooth</button>
-
-    <div class="section-title">Chọn mẫu mặt đồng hồ:</div>
-    <div class="template-grid" id="grid-templates"></div>
-
-    <div class="section-title">Khung Xem Trước:</div>
-    <div id="khung-xem-truoc"></div>
-
-    <button id="btn-sync" class="btn-main" style="background:#2196F3; margin-top:10px;">ĐỒNG BỘ DỮ LIỆU</button>
-
-    <script>
-        const BLE_SERVICE = "0000ffe0-0000-1000-8000-00805f9b34fb";
-        const BLE_CHAR = "0000ffe1-0000-1000-8000-00805f9b34fb";
-        let bleChar = null;
-        let currentTemplate = 1;
-
-        const btnBluetooth = document.getElementById('btn-bluetooth');
-
-        // Hàm cập nhật trạng thái nút
-        function updateBtnState(state) {
-            btnBluetooth.className = "btn-main";
-            if (state === 'idle') {
-                btnBluetooth.classList.add('state-idle');
-                btnBluetooth.innerText = "Kết nối Bluetooth";
-            } else if (state === 'connecting') {
-                btnBluetooth.classList.add('state-connecting');
-                btnBluetooth.innerText = "🔄 Đang kết nối...";
-            } else if (state === 'connected') {
-                btnBluetooth.classList.add('state-connected');
-                btnBluetooth.innerText = "✅ Đã kết nối";
-            } else if (state === 'error') {
-                btnBluetooth.classList.add('state-error');
-                btnBluetooth.innerText = "❌ Thử lại kết nối";
-            }
-        }
-
-        async function connectBLE() {
-            try {
-                updateBtnState('connecting');
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [BLE_SERVICE]
-                });
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService(BLE_SERVICE);
-                bleChar = await service.getCharacteristic(BLE_CHAR);
-                
-                updateBtnState('connected');
-                
-                device.addEventListener('gattserverdisconnected', () => updateBtnState('error'));
-            } catch (err) {
-                console.error(err);
-                updateBtnState('error');
-            }
-        }
-
-        btnBluetooth.addEventListener('click', connectBLE);
-
-        // ... (Giữ nguyên các hàm render và logic khác như cũ)
-        // Lưu ý: Đảm bảo anh dán phần logic render mẫu đồng hồ từ các đoạn mã trước vào đây
-        window.onload = () => {
-            // Khởi tạo giao diện
-            renderTemplate(); // Hàm render của anh
-        };
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper 2.9" - Đồng Bộ</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
-    <style>
-        /* GIỮ NGUYÊN STYLE CŨ ĐỂ ĐẢM BẢO GIAO DIỆN KHÔNG BỊ LỖI */
-        body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
-        
-        /* Cấu trúc nút Bluetooth thông minh */
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; color: white; cursor: pointer; text-align: center; margin-bottom: 10px; }
-        .state-idle { background-color: #4CAF50; } /* Xanh */
-        .state-connecting { background-color: #FFC107; color: #333; } /* Vàng */
-        .state-connected { background-color: #4CAF50; filter: brightness(1.2); } /* Xanh đậm */
-        .state-error { background-color: #F44336; } /* Đỏ */
-
-        /* Giữ nguyên các class mẫu giao diện */
-        .section-title { font-weight: bold; margin: 15px 0 10px; border-left: 4px solid #333; padding-left: 8px; }
-        .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; }
-        .card.active { border-color: #2196F3; background: #e3f2fd; }
-        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background: white; min-height: 250px; padding: 10px; }
+        #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background: white; min-height: 250px; padding: 10px; margin-bottom: 10px; }
+        .global-footer-quote { text-align: center; font-style: italic; font-weight: bold; font-size: 12px; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -147,48 +30,60 @@
 
     <div class="section-title">Chọn mẫu mặt đồng hồ:</div>
     <div class="template-grid" id="grid-templates">
-        <div class="card active" onclick="selectTemplate(1)">Mẫu 1: Đồng Hồ Lật</div>
-        <div class="card" onclick="selectTemplate(2)">Mẫu 2: Lịch Số</div>
-        </div>
+        <div class="card active" onclick="setTemplate(1)">Mẫu 1: Lật Dài</div>
+        <div class="card" onclick="setTemplate(2)">Mẫu 2: Lịch Số</div>
+        <div class="card" onclick="setTemplate(3)">Mẫu 3: Số To</div>
+        <div class="card" onclick="setTemplate(4)">Mẫu 4: Âm Dương</div>
+        <div class="card" onclick="setTemplate(5)">Mẫu 5: Tháng</div>
+        <div class="card" onclick="setTemplate(6)">Mẫu 6: Kim Tròn</div>
+    </div>
 
     <div class="section-title">Khung Xem Trước:</div>
     <div id="khung-xem-truoc"></div>
 
-    <button id="btn-sync" class="btn-main" style="background:#2196F3;">ĐỒNG BỘ DỮ LIỆU</button>
+    <button id="btn-sync" class="btn-main" style="background:var(--blue-active);">ĐỒNG BỘ DỮ LIỆU</button>
 
     <script>
+        let currentTemplate = 1;
         const btnBluetooth = document.getElementById('btn-bluetooth');
-
-        // Hàm cập nhật trạng thái nút
+        
         function updateBtnState(state) {
             btnBluetooth.className = "btn-main";
-            if (state === 'idle') {
-                btnBluetooth.classList.add('state-idle');
-                btnBluetooth.innerText = "Kết nối Bluetooth";
-            } else if (state === 'connecting') {
-                btnBluetooth.classList.add('state-connecting');
-                btnBluetooth.innerText = "🔄 Đang kết nối...";
-            } else if (state === 'connected') {
-                btnBluetooth.classList.add('state-connected');
-                btnBluetooth.innerText = "✅ Đã kết nối";
-            } else if (state === 'error') {
-                btnBluetooth.classList.add('state-error');
-                btnBluetooth.innerText = "❌ Thử lại kết nối";
-            }
+            if (state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
+            else if (state === 'connecting') { btnBluetooth.classList.add('state-connecting'); btnBluetooth.innerText = "🔄 Đang kết nối..."; }
+            else if (state === 'connected') { btnBluetooth.classList.add('state-connected'); btnBluetooth.innerText = "✅ Đã kết nối"; }
+            else if (state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
         }
 
-        // Logic kết nối của anh
-        btnBluetooth.addEventListener('click', async () => {
+        function setTemplate(idx) {
+            currentTemplate = idx;
+            document.querySelectorAll('.card').forEach((c, i) => c.className = (i+1 === idx) ? 'card active' : 'card');
+            render();
+        }
+
+        async function connectBLE() {
             updateBtnState('connecting');
             try {
-                // Giữ nguyên đoạn code kết nối BLE của anh ở đây
-                // Nếu thành công -> updateBtnState('connected')
+                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"] });
+                const server = await device.gatt.connect();
+                updateBtnState('connected');
+                device.addEventListener('gattserverdisconnected', () => updateBtnState('error'));
             } catch (err) {
                 updateBtnState('error');
             }
-        });
-        
-        // Anh dán lại các đoạn function renderTemplate, getPhoneTimeDetails cũ vào dưới đây nhé
+        }
+
+        function render() {
+            const now = new Date();
+            const quote = "Hành trình vạn dặm bắt đầu từ một bước chân."; // Danh ngôn mẫu
+            document.getElementById('khung-xem-truoc').innerHTML = `
+                <div style="font-size:20px; font-weight:bold;">${now.getHours()}:${now.getMinutes()}</div>
+                <div class="global-footer-quote">${quote}</div>
+            `;
+        }
+
+        btnBluetooth.onclick = connectBLE;
+        window.onload = render;
     </script>
 </body>
 </html>
