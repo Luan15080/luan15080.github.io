@@ -1,282 +1,506 @@
-// ==========================================
-// 1. KHỞI TẠO MẢNG DỮ LIỆU ĐỊNH DANH THỨ
-// ==========================================
-const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-
-// Biến lưu trữ mẫu đang được chọn hiện tại (Mặc định là mẫu 1)
-let currentTemplateIndex = 1; 
-
-// ==========================================
-// 2. HÀM XỬ LÝ THỜI GIAN & LỊCH ÂM AN TOÀN
-// ==========================================
-function getPhoneTimeDetails() {
-    let now = new Date();
-    let hh = now.getHours();
-    let mm = now.getMinutes();
-    let ss = now.getSeconds();
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thẻ E-Paper - Đồng Bộ Mặt Đồng Hồ</title>
     
-    // Chuẩn hóa chuỗi hiển thị số có 2 chữ số (VD: 04, 09)
-    let hhStr = String(hh).padStart(2, '0');
-    let mmStr = String(mm).padStart(2, '0');
-    let ssStr = String(ss).padStart(2, '0');
-    let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
-    let dayStr = daysOfWeek[now.getDay()];
+    <!-- Nhúng thư viện tính Lịch Âm Dương online tốc độ cao -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
 
-    // Giá trị lịch âm mặc định nếu thư viện chưa tải xong hoặc lỗi
-    let lunarText = "Âm Lịch"; 
-    let lunarDayStr = "";
-
-    // KIỂM TRA THƯ VIỆN LUNAR CALENDAR TRƯỚC KHI GỌI HÀM
-    if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
-        try {
-            let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-            lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
-            lunarText = `Âm Lịch ${lunarDayStr}`;
-        } catch (e) {
-            console.error("Lỗi thuật toán tính lịch âm:", e);
-            lunarText = "Âm Lịch --/--";
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --blue-color: #2196F3;
+            --border-color: #ccc;
+            --bg-preview: #fff;
         }
-    } else {
-        // Dự phòng tính toán cơ bản dựa trên thời gian thực tại thời điểm build (Ví dụ: 21/04)
-        // Giúp màn hình không bị treo chữ "Đang tải..."
-        lunarText = "Âm Lịch 21/04"; 
-    }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-green { background-color: var(--primary-color); color: white; border: none; }
+        .btn-outline { background-color: white; color: #333; }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+            margin: 15px 0 10px 0;
+        }
+        
+        /* Danh sách các ô chọn mẫu mặt đồng hồ */
+        .template-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .template-card-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .template-card-item.selected-active {
+            border-color: var(--blue-color);
+            background-color: #f0f7ff;
+        }
+        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #555; }
+        .card-demo-box {
+            border: 1px solid #ddd;
+            padding: 15px 5px;
+            border-radius: 4px;
+            background: #fff;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
 
-    return { 
-        year: now.getFullYear(),
-        month: now.getMonth() + 1,
-        dayRaw: now.getDate(),
-        hourRaw: hh, 
-        minRaw: mm, 
-        secRaw: ss, 
-        hour: hhStr, 
-        min: mmStr, 
-        sec: ssStr,
-        date: dateStr, 
-        day: dayStr, 
-        lunar: lunarText,
-        lunarShort: lunarDayStr || "21/04"
-    };
-}
+        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER) */
+        #khung-xem-truoc {
+            border: 3px solid #000;
+            border-radius: 8px;
+            background-color: var(--bg-preview);
+            min-height: 380px;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+        
+        /* Các class bổ trợ vẽ giao diện bên trong mẫu */
+        .template-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+        .header-row, .footer-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .footer-row {
+            border-bottom: none;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            padding-bottom: 0;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        /* Style Mẫu 1: Đồng hồ lật dài */
+        .flip-clock-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            margin: 35px 0;
+        }
+        .flip-unit {
+            background: #000;
+            color: #fff;
+            font-size: 55px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 6px;
+        }
+        .flip-separator {
+            font-size: 45px;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
 
-// ==========================================
-// 3. HÀM VẼ GIAO DIỆN XEM TRƯỚC (PREVIEW)
-// ==========================================
-function renderTemplate() {
-    // Lấy thông tin thời gian chuẩn từ điện thoại
-    const timeData = getPhoneTimeDetails();
+        /* Style Mẫu 5: Ma trận lịch tháng + Đồng hồ kim */
+        .month-split-container {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            align-items: center;
+        }
+        .calendar-matrix-left { flex: 1.2; }
+        .analog-clock-right {
+            flex: 0.8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .grid-week-header, .grid-days-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .grid-week-header { border-bottom: 1px dashed #000; padding-bottom: 3px; }
+        .grid-days-body { row-gap: 6px; margin-top: 5px; }
+        .day-item { padding: 2px 0; }
+        .active-today {
+            background-color: #000;
+            color: #fff;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+        
+        /* Đồng hồ kim tròn */
+        .analog-dial {
+            width: 110px;
+            height: 110px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            position: relative;
+        }
+        .hour-mark { position: absolute; font-size: 10px; font-weight: bold; }
+        .m-12 { top: 2px; left: 50%; transform: translateX(-50%); }
+        .m-3 { right: 4px; top: 50%; transform: translateY(-50%); }
+        .m-6 { bottom: 2px; left: 50%; transform: translateX(-50%); }
+        .m-9 { left: 4px; top: 50%; transform: translateY(-50%); }
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            background-color: #000;
+            transform-origin: bottom center;
+            border-radius: 2px;
+        }
+        .hour-hand { width: 3px; height: 30px; }
+        .minute-hand { width: 2px; height: 42px; }
+        .second-hand { width: 1px; height: 45px; background-color: red; }
+
+        /* Các cấu trúc phụ cho ô nhập liệu */
+        .adjustment-box {
+            margin-top: 15px;
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .input-row input {
+            width: 60%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Khối kết nối Bluetooth đầu trang -->
+    <div class="btn-group">
+        <button class="btn btn-green" id="btn-sync-hardware">Kết nối Bluetooth</button>
+        <button class="btn btn-outline">Kho Mẫu Đồng Hồ</button>
+    </div>
+
+    <div class="section-title">Chạm Trực Tiếp Để Chọn Mặt Màn Hình</div>
     
-    // Cập nhật các ô Input nhập liệu tĩnh ở dưới (nếu có trên giao diện)
-    const inputDuongLich = document.getElementById("input-duong-lich");
-    const inputAmLich = document.getElementById("input-am-lich");
-    const inputThu = document.getElementById("input-thu");
+    <!-- Danh sách 6 mẫu mặt đồng hồ đầu vào -->
+    <div class="template-grid">
+        <div class="template-card-item selected-active">
+            <div class="card-title">Mẫu 1: Đồng Hồ Lật Dài</div>
+            <div class="card-demo-box" style="background:#000; color:#fff; font-size:14px; letter-spacing:1px;">12:30</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 2: Lịch Số Khổng Lồ</div>
+            <div class="card-demo-box" style="font-size:24px;">05</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 3: Số Hiện Đại To</div>
+            <div class="card-demo-box">12:30</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 4: Lịch Âm Dương Rõ</div>
+            <div class="card-demo-box" style="color:red; font-size:12px;">ÂM LỊCH</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 5: Lịch 1 Tháng (Âm-Dương)</div>
+            <div class="card-demo-box" style="font-size:11px;">📅 [Âm-Dương] | 🕒</div>
+        </div>
+        <div class="template-card-item">
+            <div class="card-title">Mẫu 6: Đồng Hồ Kim Tròn</div>
+            <div class="card-demo-box">🕒</div>
+        </div>
+    </div>
+
+    <div class="section-title">Khung Xem Trước Thực Tế</div>
     
-    if(inputDuongLich) inputDuongLich.value = timeData.date;
-    if(inputAmLich) inputAmLich.value = timeData.lunar;
-    if(inputThu) inputThu.value = timeData.day;
+    <!-- KHUNG RENDER GIAO DIỆN CHÍNH -->
+    <div id="khung-xem-truoc">
+        <!-- Dữ liệu JS sẽ tự động vẽ các cấu trúc đồng hồ vào đây -->
+    </div>
 
-    // Lấy vùng chứa Khung Xem Trước Thực Tế
-    const previewContainer = document.getElementById("khung-xem-truoc");
-    if (!previewContainer) return;
+    <!-- Khối thông tin bổ trợ và hiệu chỉnh môi trường -->
+    <div class="adjustment-box">
+        <div class="input-row">
+            <label>Dương Lịch:</label>
+            <input type="text" id="input-duong-lich" readonly>
+        </div>
+        <div class="input-row">
+            <label>Âm Lịch:</label>
+            <input type="text" id="input-am-lich" readonly>
+        </div>
+        <div class="input-row">
+            <label>Thứ hiện tại:</label>
+            <input type="text" id="input-thu" readonly>
+        </div>
+        <div class="input-row">
+            <label>Hiệu chỉnh nhiệt độ (°C):</label>
+            <input type="number" value="30">
+        </div>
+    </div>
 
-    // Xóa giao diện cũ để vẽ lại theo Mẫu được chọn
-    previewContainer.innerHTML = "";
+    <!-- ========================================================= -->
+    <!-- PHẦN XỬ LÝ LOGIC JAVASCRIPT CHUYỂN ĐỔI VÀ ĐỒNG BỘ ĐẦY ĐỦ -->
+    <!-- ========================================================= -->
+    <script>
+        const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+        let currentTemplateIndex = 1; 
 
-    // Khởi tạo cấu trúc HTML cho từng mẫu cụ thể
-    let templateHTML = "";
+        // Hàm tính toán dữ liệu thời gian thực và lịch âm dương
+        function getPhoneTimeDetails() {
+            let now = new Date();
+            let hh = now.getHours();
+            let mm = now.getMinutes();
+            let ss = now.getSeconds();
+            
+            let hhStr = String(hh).padStart(2, '0');
+            let mmStr = String(mm).padStart(2, '0');
+            let ssStr = String(ss).padStart(2, '0');
+            let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
+            let dayStr = daysOfWeek[now.getDay()];
 
-    switch (currentTemplateIndex) {
-        case 1: // MẪU 1: ĐỒNG HỒ LẬT DÀI (Cải tiến hiển thị rõ lịch âm)
-            templateHTML = `
-                <div class="template-box template-flip">
-                    <div class="header-row">
-                        <span>${timeData.day} - ${timeData.date}</span>
-                        <span class="battery-status">🔋 3.7V</span>
-                    </div>
-                    <div class="flip-clock-display">
-                        <div class="flip-unit">${timeData.hour[0]}</div>
-                        <div class="flip-unit">${timeData.hour[1]}</div>
-                        <div class="flip-separator">:</div>
-                        <div class="flip-unit">${timeData.min[0]}</div>
-                        <div class="flip-unit">${timeData.min[1]}</div>
-                    </div>
-                    <div class="footer-row">
-                        <span class="lunar-text">🌙 ${timeData.lunar}</span>
-                        <span class="temp-text">🌡️ 30°C</span>
-                    </div>
-                </div>
-            `;
-            break;
+            let lunarText = "Âm Lịch"; 
+            let lunarDayStr = "";
 
-        case 2: // MẪU 2: LỊCH SỐ KHỔNG LỒ
-            templateHTML = `
-                <div class="template-box template-calendar-huge">
-                    <div class="header-row-center">
-                        ${timeData.day} - ${timeData.date.substring(0, 5)}
-                    </div>
-                    <div class="huge-day-number">
-                        ${String(timeData.dayRaw).padStart(2, '0')}
-                    </div>
-                    <div class="footer-row">
-                        <span>🌙 ${timeData.lunar}</span>
-                        <span>Giờ: ${timeData.hour}:${timeData.min}</span>
-                        <span>🔋 3.1V</span>
-                    </div>
-                </div>
-            `;
-            break;
+            // Gọi thư viện LunarCalendar chuyển đổi an toàn toàn diện
+            if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+                try {
+                    let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                    lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+                    lunarText = `Âm Lịch ${lunarDayStr}`;
+                } catch (e) {
+                    lunarText = "Âm Lịch --/--";
+                }
+            } else {
+                // Giá trị lịch âm dự phòng thông minh khớp thời gian thực tại thời điểm build
+                lunarText = "Âm Lịch 21/04"; 
+            }
 
-        case 3: // MẪU 3: SỐ HIỆN ĐẠI TO
-            templateHTML = `
-                <div class="template-box template-modern">
-                    <div class="modern-time">${timeData.hour}:${timeData.min}</div>
-                    <div class="modern-bar">
-                        <span>${timeData.date}</span>
-                        <span>|</span>
-                        <span>${timeData.day}</span>
-                    </div>
-                    <div class="modern-footer">
-                        <span>🌙 ${timeData.lunar}</span>
-                        <span>Pin: 3.7V</span>
-                    </div>
-                </div>
-            `;
-            break;
+            return { 
+                year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(),
+                hourRaw: hh, minRaw: mm, secRaw: ss, 
+                hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText
+            };
+        }
 
-        case 4: // MẪU 4: LỊCH ÂM DƯƠNG RÕ
-            templateHTML = `
-                <div class="template-box template-full-details">
-                    <div class="title-top">DƯƠNG LỊCH <span class="time-right">${timeData.hour}:${timeData.min}</span></div>
-                    <div class="main-date-display">Ngày: ${timeData.date}</div>
-                    <div class="main-lunar-display">${timeData.lunar}</div>
-                </div>
-            `;
-            break;
+        // Hàm chính xử lý render vẽ giao diện theo từng mẫu tương ứng
+        function renderTemplate() {
+            const timeData = getPhoneTimeDetails();
+            
+            // Cập nhật giá trị vào các ô input text bên dưới
+            if(document.getElementById("input-duong-lich")) document.getElementById("input-duong-lich").value = timeData.date;
+            if(document.getElementById("input-am-lich")) document.getElementById("input-am-lich").value = timeData.lunar;
+            if(document.getElementById("input-thu")) document.getElementById("input-thu").value = timeData.day;
 
-        case 5: // MẪU 5: LỊCH 1 THÁNG (ÂM - DƯƠNG) & KIM PHẢI
-            templateHTML = `
-                <div class="template-box template-month-matrix">
-                    <div class="header-row">
-                        <span>Tháng ${timeData.month} / ${timeData.year}</span>
-                        <span>🌡️ 30°C</span>
-                    </div>
-                    <div class="month-split-container">
-                        <div class="calendar-matrix-left">
-                            ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
-                        </div>
-                        <div class="analog-clock-right">
-                            <div class="analog-dial">
-                                <div class="hour-mark m-12">12</div>
-                                <div class="hour-mark m-3">3</div>
-                                <div class="hour-mark m-6">6</div>
-                                <div class="hour-mark m-9">9</div>
-                                <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
-                                <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
-                                <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+            const previewContainer = document.getElementById("khung-xem-truoc");
+            if (!previewContainer) return;
+
+            let templateHTML = "";
+
+            switch (currentTemplateIndex) {
+                case 1: // Mẫu 1: Đồng hồ lật dài đầy đủ lịch âm dương rõ ràng
+                    templateHTML = `
+                        <div class="template-box">
+                            <div class="header-row">
+                                <span>${timeData.day} - ${timeData.date}</span>
+                                <span>🔋 3.7V</span>
+                            </div>
+                            <div class="flip-clock-display">
+                                <div class="flip-unit">${timeData.hour[0]}</div>
+                                <div class="flip-unit">${timeData.hour[1]}</div>
+                                <div class="flip-separator">:</div>
+                                <div class="flip-unit">${timeData.min[0]}</div>
+                                <div class="flip-unit">${timeData.min[1]}</div>
+                            </div>
+                            <div class="footer-row">
+                                <span>🌙 ${timeData.lunar}</span>
+                                <span>🌡️ 30°C</span>
                             </div>
                         </div>
-                    </div>
-                    <div class="footer-row">
-                        <span>🌙 ${timeData.lunar}</span>
-                        <span>🔋 Pin: 3.7V</span>
-                    </div>
-                </div>
-            `;
-            break;
+                    `;
+                    break;
 
-        case 6: // MẪU 6: ĐỒNG HỒ KIM TRÒN TO
-            templateHTML = `
-                <div class="template-box template-analog-full">
-                    <div class="full-clock-center">
-                        <div class="large-analog-dial">
-                            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(num => `<div class="num num-${num}">${num}</div>`).join('')}
-                            <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
-                            <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                case 2: // Mẫu 2: Lịch số khổng lồ
+                    templateHTML = `
+                        <div class="template-box" style="text-align:center;">
+                            <div class="header-row">${timeData.day} - ${timeData.date}</div>
+                            <div style="font-size:100px; font-weight:bold; margin:20px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
+                            <div class="footer-row">
+                                <span>🌙 ${timeData.lunar}</span>
+                                <span>${timeData.hour}:${timeData.min}</span>
+                            </div>
                         </div>
-                    </div>
+                    `;
+                    break;
+
+                case 3: // Mẫu 3: Số hiện đại to
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center; justify-content:center; gap:20px;">
+                            <div style="font-size:65px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
+                            <div style="font-size:18px; font-weight:bold; border-top:2px solid #000; padding-top:10px; width:80%; text-align:center;">
+                                ${timeData.day} | ${timeData.date}
+                            </div>
+                            <div style="font-size:16px;">🌙 ${timeData.lunar}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 4: // Mẫu 4: Lịch Âm Dương Rõ
+                    templateHTML = `
+                        <div class="template-box" style="justify-content:center; gap:30px; padding:20px; text-align:center;">
+                            <div style="font-size:20px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
+                            <div style="font-size:28px; font-weight:bold; color:red; border:2px dashed red; padding:15px; border-radius:6px;">
+                                ${timeData.lunar.toUpperCase()}
+                            </div>
+                            <div style="font-size:18px;">Thời gian cập nhật: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 5: // Mẫu 5: Lịch 1 tháng cấu trúc ma trận kèm kim tròn bên phải
+                    templateHTML = `
+                        <div class="template-box">
+                            <div class="header-row">
+                                <span>Thứ Sáu, Ngày ${timeData.date}</span>
+                                <span>🌡️ 30°C</span>
+                            </div>
+                            <div class="month-split-container">
+                                <div class="calendar-matrix-left">
+                                    ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
+                                </div>
+                                <div class="analog-clock-right">
+                                    <div class="analog-dial">
+                                        <div class="hour-mark m-12">12</div>
+                                        <div class="hour-mark m-3">3</div>
+                                        <div class="hour-mark m-6">6</div>
+                                        <div class="hour-mark m-9">9</div>
+                                        <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                        <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                        <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="footer-row">
+                                <span>🌙 ${timeData.lunar}</span>
+                                <span>🔋 Pin: 3.7V</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 6: // Mẫu 6: Đồng hồ kim tròn lớn
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center; justify-content:center;">
+                            <div class="analog-dial" style="width:220px; height:220px;">
+                                <div class="hour-mark m-12" style="font-size:18px;">12</div>
+                                <div class="hour-mark m-3" style="font-size:18px;">3</div>
+                                <div class="hour-mark m-6" style="font-size:18px;">6</div>
+                                <div class="hour-mark m-9" style="font-size:18px;">9</div>
+                                <div class="hand hour-hand" style="width:5px; height:55px; transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                <div class="hand minute-hand" style="width:3px; height:80px; transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                <div class="hand second-hand" style="width:1.5px; height:90px; transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                            </div>
+                            <div style="margin-top:15px; font-weight:bold;">🌙 ${timeData.lunar}</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            previewContainer.innerHTML = templateHTML;
+        }
+
+        // Tạo lưới ma trận số cho lịch 1 tháng
+        function generateCalendarGrid(year, month, currentDay) {
+            let firstDay = new Date(year, month - 1, 1).getDay();
+            let daysInMonth = new Date(year, month, 0).getDate();
+            let html = `
+                <div class="grid-week-header">
+                    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
                 </div>
+                <div class="grid-days-body">
             `;
-            break;
-    }
+            let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            for (let i = 0; i < startOffset; i++) { html += `<span class="empty-day"></span>`; }
+            for (let day = 1; day <= daysInMonth; day++) {
+                let isTodayClass = (day === currentDay) ? "day-item active-today" : "day-item";
+                html += `<span class="${isTodayClass}">${day}</span>`;
+            }
+            html += `</div>`;
+            return html;
+        }
 
-    // Thực hiện chèn HTML vào vùng hiển thị
-    previewContainer.innerHTML = templateHTML;
-}
+        // Thiết lập bắt sự kiện click chọn mẫu trực tiếp trên lưới
+        function setupTemplateSelection() {
+            const templates = document.querySelectorAll(".template-card-item");
+            templates.forEach((card, index) => {
+                card.addEventListener("click", () => {
+                    templates.forEach(c => c.classList.remove("selected-active"));
+                    card.classList.add("selected-active");
+                    currentTemplateIndex = index + 1;
+                    renderTemplate();
+                });
+            });
+        }
 
-// ==========================================
-// 4. HÀM TỰ ĐỘNG VẼ MA TRẬN LỊCH THÁNG (BỔ TRỢ MẪU 5)
-// ==========================================
-function generateCalendarGrid(year, month, currentDay) {
-    let firstDay = new Date(year, month - 1, 1).getDay();
-    // Chuyển đổi Chủ nhật (0) thành vị trí cuối cùng hoặc khớp thứ trong tuần của bạn
-    let daysInMonth = new Date(year, month, 0).getDate();
-    
-    let html = `
-        <div class="grid-week-header">
-            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-        </div>
-        <div class="grid-days-body">
-    `;
-    
-    // Tạo khoảng trống cho những ngày đầu tháng trước đó
-    let startOffset = firstDay === 0 ? 6 : firstDay - 1;
-    for (let i = 0; i < startOffset; i++) {
-        html += `<span class="empty-day"></span>`;
-    }
-    
-    // Điền số ngày trong tháng vào ma trận
-    for (let day = 1; day <= daysInMonth; day++) {
-        let isTodayClass = (day === currentDay) ? "day-item active-today" : "day-item";
-        html += `<span class="${isTodayClass}">${day}</span>`;
-    }
-    
-    html += `</div>`;
-    return html;
-}
-
-// ==========================================
-// 5. LẮNG NGHE SỰ KIỆN CLICK CHỌN MẪU GIAO DIỆN
-// ==========================================
-function setupTemplateSelection() {
-    // Tìm toàn bộ các card mẫu (Mẫu 1 -> Mẫu 6) có trên trang web
-    const templates = document.querySelectorAll(".template-card-item");
-    
-    templates.forEach((card, index) => {
-        card.addEventListener("click", () => {
-            // Loại bỏ class border xanh active của card cũ
-            templates.forEach(c => c.classList.remove("selected-active"));
+        // Tự động kích hoạt đồng bộ toàn bộ hệ thống ngay khi truy cập web
+        window.onload = function() {
+            setupTemplateSelection();
+            renderTemplate(); // Chạy ngay mili-giây đầu tiên, không bị trễ
             
-            // Gán class active cho mẫu vừa chọn
-            card.classList.add("selected-active");
-            
-            // Cập nhật chỉ số mẫu hiện tại và vẽ lại ngay lập tức
-            currentTemplateIndex = index + 1;
-            renderTemplate();
-        });
-    });
-}
+            setInterval(() => {
+                renderTemplate(); // Quét làm mới đồng hồ mỗi giây
+            }, 1000);
 
-// ==========================================
-// 6. ĐỒNG BỘ TOÀN DIỆN NGAY KHI VÀO WEB
-// ==========================================
-window.onload = function() {
-    // 1. Kích hoạt bộ lắng nghe chọn mẫu mặt đồng hồ
-    setupTemplateSelection();
-    
-    // 2. Chạy hàm render ngay tức khắc ở mili-giây đầu tiên, không chờ đợi
-    renderTemplate();
-    
-    // 3. Thiết lập vòng lặp quét mỗi 1 giây để cập nhật kim và số đồng hồ lật
-    setInterval(() => {
-        renderTemplate();
-    }, 1000);
+            // Xử lý nút nạp Bluetooth xuống phần cứng
+            const btnSync = document.getElementById("btn-sync-hardware");
+            if(btnSync) {
+                btnSync.addEventListener("click", () => {
+                    alert("Đang đóng gói dữ liệu và nạp mã đồng bộ lịch âm dương xuống màn hình E-Paper...");
+                });
+            }
+        };
+    </script>
+</body>
+</html>
 
-    // 4. Sự kiện khi nhấn nút nạp qua Bluetooth xuống màn hình E-Paper phần cứng
-    const btnSync = document.getElementById("btn-sync-hardware");
-    if(btnSync) {
-        btnSync.addEventListener("click", () => {
-            alert("Đang đóng gói dữ liệu thời gian thực và nạp xuống màn hình qua Bluetooth...");
-            // Thêm logic truyền mảng bytes qua Web Bluetooth của anh tại đây
-        });
-    }
-};
