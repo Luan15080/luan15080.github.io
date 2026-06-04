@@ -8,7 +8,7 @@
     <style>
         body { font-family: sans-serif; margin: 10px; background-color: #f4f4f4; }
         
-        /* Nút kết nối gộp 1 ô duy nhất */
+        /* Nút kết nối đa trạng thái */
         .btn-conn { 
             width: 100%; padding: 15px; border: none; border-radius: 6px; 
             font-weight: bold; color: white; cursor: pointer; text-align: center; 
@@ -33,7 +33,7 @@
     <button id="btn-bluetooth" class="btn-conn state-idle">Kết nối Bluetooth</button>
 
     <div class="section-title">Chọn mẫu mặt đồng hồ:</div>
-    <div class="template-grid">
+    <div class="template-grid" id="grid-templates">
         <div class="card active" onclick="selectTemplate(1)">Mẫu 1: Lật Dài</div>
         <div class="card" onclick="selectTemplate(2)">Mẫu 2: Lịch Số</div>
         <div class="card" onclick="selectTemplate(3)">Mẫu 3: Số To</div>
@@ -50,7 +50,7 @@
     <script>
         const btnBluetooth = document.getElementById('btn-bluetooth');
         
-        // Hàm cập nhật trạng thái nút
+        // Cập nhật trạng thái nút
         function updateBtnState(state) {
             btnBluetooth.className = "btn-conn";
             if(state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
@@ -59,11 +59,11 @@
             else if(state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
         }
 
-        // Logic xử lý khi bấm nút
+        // Sự kiện kết nối
         btnBluetooth.addEventListener('click', async () => {
             updateBtnState('connecting');
             try {
-                // Giữ nguyên đoạn code kết nối BLE của anh ở đây
+                // Dán đoạn logic kết nối Bluetooth thực tế của anh vào đây
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true, 
                     optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
@@ -76,7 +76,7 @@
             }
         });
 
-        // Hàm chọn mẫu
+        // Hàm giữ layout hiển thị
         function selectTemplate(idx) {
             document.querySelectorAll('.card').forEach((c, i) => c.className = (i+1 === idx) ? 'card active' : 'card');
         }
