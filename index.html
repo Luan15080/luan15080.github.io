@@ -9,7 +9,6 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 5px; background-color: #f9f9f9; font-size: 12px; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
         
-        /* Navigation Tabs */
         .tabs-header { display: flex; gap: 4px; border-bottom: 2px solid #3f51b5; padding-bottom: 4px; margin-bottom: 10px; overflow-x: auto; white-space: nowrap; }
         .tab-link { flex: 1; padding: 8px 4px; background-color: #4CAF50; color: white; border: none; font-weight: bold; border-radius: 3px; cursor: pointer; text-align: center; font-size: 11px; }
         .tab-link.active { background-color: white; color: #3f51b5; border: 1px solid #3f51b5; border-bottom: none; }
@@ -18,9 +17,6 @@
         .tab-content.active { display: block; }
 
         h3 { font-size: 14px; margin: 10px 0 5px 0; color: #111; }
-        .sub-txt { color: #666; margin: -3px 0 10px 0; font-size: 11px; }
-        
-        /* Grid & Buttons */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
         .btn-block { width: 100%; display: block; margin-bottom: 8px; }
         .btn { background-color: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; text-align: center; }
@@ -28,29 +24,21 @@
         .btn-blue { background-color: #2196F3; }
         .btn-red { background-color: #f44336; }
         
-        /* Form inputs */
         input[type="text"], input[type="number"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px; }
         label { font-weight: bold; display: block; margin-bottom: 3px; }
-        .range-box { margin-bottom: 8px; }
-        .range-box span { float: right; font-weight: bold; }
 
-        /* Preview Display Frame */
         .preview-box { width: 100%; max-width: 400px; height: 300px; border: 2px solid #333; margin: 10px auto; background: white; position: relative; overflow: hidden; }
         .matrix-preview { background: black; color: white; padding: 10px; text-align: center; font-family: monospace; font-size: 24px; letter-spacing: 2px; font-weight: bold; border: 2px dashed #555; }
         
-        /* Designer layout items */
-        .color-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
-        .color-dot { width: 18px; height: 18px; border-radius: 5px; border: 1px solid #aaa; cursor: pointer; }
         .icon-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-bottom: 8px; }
         .icon-btn { padding: 4px 2px; border: 1px solid #ccc; background: #fff; font-size: 10px; text-align: center; cursor: pointer; border-radius: 2px; }
         
-        #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 80px; overflow-y: auto; font-family: monospace; font-size: 10px; color: #444; margin-top: 10px; }
+        #log-terminal { background: #fafafa; border: 1px solid #ddd; padding: 6px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #333; margin-top: 10px; border-left: 3px solid #3f51b5; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Header Tabs Navigation -->
     <div class="tabs-header">
         <button class="tab-link active" onclick="openTab(event, 'tab-setting')">Cài đặt màn hình điện tử</button>
         <button class="tab-link" onclick="openTab(event, 'tab-countdown')">Mô-đun đếm ngược</button>
@@ -58,234 +46,94 @@
         <button class="tab-link" onclick="openTab(event, 'tab-designer')">Trình thiết kế mẫu</button>
     </div>
 
-    <!-- TAB 1: CAI DAT MAN HINH DIEN TU -->
     <div id="tab-setting" class="tab-content active">
         <h3>Bộ điều khiển Bluetooth màn hình E-Paper - Kết nối thiết bị trước khi cài đặt đồng hồ.</h3>
         <div class="grid-2">
-            <button class="btn" onclick="triggerBLE('SCAN')">Thiết bị quét</button>
-            <button class="btn" onclick="triggerBLE('RECONNECT')">Kết nối lại</button>
+            <button class="btn" style="background-color: #2196F3;" onclick="scanBluetoothDevice()">Thiết bị quét</button>
+            <button class="btn btn-gray" onclick="reconnectDevice()">Kết nối lại</button>
         </div>
-        <button class="btn btn-block" onclick="clearLog()">Xóa nhật ký</button>
+        <button class="btn btn-block btn-gray" onclick="clearLog()">Xóa nhật ký</button>
         
         <div class="grid-2" style="grid-template-columns: 4fr 1fr;">
-            <button class="btn" id="btn-time-sync">Thời gian thiết lập: 2026-6-5 01:01:54 Tuần 5</button>
+            <button class="btn" id="btn-time-sync" onclick="syncTime()">Thời gian thiết lập: Đồng bộ ngay</button>
             <input type="number" value="0" id="sync-offset">
         </div>
 
         <div class="grid-2">
-            <button class="btn" onclick="triggerBLE('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
-            <button class="btn" onclick="triggerBLE('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
-            <button class="btn" onclick="triggerBLE('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
-            <button class="btn" onclick="triggerBLE('SET_IMG_MODE')">Đặt chế độ hình ảnh</button>
-            <button class="btn" onclick="triggerBLE('INVERT_COLOR')">Bật/tắt chế độ đảo màu đen trắng</button>
-            <button class="btn" onclick="triggerBLE('ROTATE_180')">Xoay màn hình 180 độ</button>
+            <button class="btn" onclick="sendCommand('MODE_CLOCK')">Chuyển sang Chế độ đồng hồ</button>
+            <button class="btn" onclick="sendCommand('MODE_CALENDAR')">Chuyển sang Chế độ Lịch</button>
+            <button class="btn" onclick="sendCommand('TOGGLE_COLOR')">Chuyển đổi màu đồng hồ</button>
+            <button class="btn" onclick="sendCommand('SET_IMG_MODE')">Đặt chế độ hình ảnh</button>
+            <button class="btn" onclick="sendCommand('INVERT_COLOR')">Bật/tắt chế độ đảo màu đen trắng</button>
+            <button class="btn" onclick="sendCommand('ROTATE_180')">Xoay màn hình 180 độ</button>
         </div>
 
-        <input type="text" id="hex-refresh-input" value="Hiệu chỉnh làm mới một phần màu đỏ (hex 01-0f). Tắt màu đỏ và hiệu chỉnh màu đen (10-f0). Giá trị càng cao thì màu càng tối.">
+        <input type="text" id="hex-refresh-input" value="Hiệu chỉnh làm mới một phần màu đỏ (hex 01-0f). Tắt màu đỏ và hiệu chỉnh màu đen (10-f0).">
         <div class="grid-2">
-            <button class="btn" onclick="triggerBLE('PARTIAL_CONFIG')">Thiết lập hiệu chỉnh làm mới một phần (cũng như nhập lệnh)</button>
-            <button class="btn" onclick="location.reload()">(Không có phản hồi? Nhấp chuột) Làm mới</button>
-            <button class="btn" onclick="triggerBLE('SEND_AA')">Gửi AA</button>
-            <button class="btn" onclick="triggerBLE('SEND_AB')">Gửi AB</button>
+            <button class="btn" onclick="sendCommand('PARTIAL_CONFIG')">Thiết lập hiệu chỉnh làm mới một phần</button>
+            <button class="btn btn-gray" onclick="location.reload()">Làm mới trang web</button>
+            <button class="btn" onclick="sendCommand('AA')">Gửi AA</button>
+            <button class="btn" onclick="sendCommand('AB')">Gửi AB</button>
         </div>
 
         <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 8px;">
-            <span>Giờ bắt đầu:</span><input type="number" value="0" style="width:50px; margin:0;">
-            <span>Giờ kết thúc:</span><input type="number" value="0" style="width:50px; margin:0;">
-            <button class="btn" style="flex:1;" onclick="triggerBLE('SLEEP_ON')">Bật chế độ ngủ (không làm mới trong khoảng thời gian màn hình trắng)</button>
+            <span>Giờ bắt đầu:</span><input type="number" id="sleep-start" value="0" style="width:50px; margin:0;">
+            <span>Giờ kết thúc:</span><input type="number" id="sleep-end" value="0" style="width:50px; margin:0;">
+            <button class="btn" style="flex:1;" onclick="sendCommand('SLEEP_ON')">Bật chế độ ngủ</button>
         </div>
-        <button class="btn btn-block" onclick="triggerBLE('SLEEP_OFF')">Tắt chế độ ngủ (màn hình tự làm mới trong thời gian màn hình trắng) + Chế độ tiết kiệm pin + Sửa chữa</button>
+        <button class="btn btn-block btn-red" onclick="sendCommand('SLEEP_OFF')">Tắt chế độ ngủ + Chế độ tiết kiệm pin + Sửa chữa</button>
 
         <label>Biển báo đỗ xe đồng hồ độ phân giải thấp 2,13" - Nhập số:</label>
-        <input type="text" placeholder="Con số:">
-        <button class="btn btn-block" onclick="triggerBLE('SET_PARKING_NUM')">Đặt số hiển thị</button>
+        <input type="text" id="parking-num" placeholder="Con số:">
+        <button class="btn btn-block" onclick="sendCommand('SET_PARKING_NUM')">Đặt số hiển thị</button>
 
-        <label>Kích hoạt (không cần thiết nếu màn hình hoạt động):</label>
-        <input type="text" placeholder="Nhập mã kích hoạt:">
-        <button class="btn btn-block" onclick="triggerBLE('ACTIVATE_DEV')">Kích hoạt</button>
+        <label>Kích hoạt:</label>
+        <input type="text" id="active-code" placeholder="Nhập mã kích hoạt:">
+        <button class="btn btn-block btn-blue" onclick="sendCommand('ACTIVATE_DEV')">Kích hoạt</button>
     </div>
 
-    <!-- TAB 2: MO-DUN DEM NGUOC -->
     <div id="tab-countdown" class="tab-content">
-        <h3>Công cụ chọn ngày đếm ngược - Chọn để áp dụng</h3>
-        <label>Chọn ngày:</label>
-        <select><option>-- Chọn ngày sự kiện --</option></select>
-        
-        <div style="border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-top: 8px;">
-            <p><strong>Cài đặt Cài đặt đầu vào</strong></p>
-            <label>Nhập văn bản (tối đa 8 ký tự)</label>
-            <input type="text" value="COUNT" id="countdown-text-input">
-            
-            <label>Giao diện đếm ngược</label>
-            <input type="text" value="Đồng hồ đếm ngược" disabled style="background:#eee;">
-            
-            <label>Chọn phông chữ (chỉ dành cho máy tính để bàn)</label>
-            <select id="font-family-select"><option value="SimSun">SimSun</option><option value="Arial">Arial</option></select>
-            
-            <div class="range-box">
-                <label>Cỡ chữ (50%-150%)</label>
-                <input type="range" min="50" max="150" value="100">
-                <span id="font-scale-val">100%</span>
-            </div>
-            <p class="sub-txt">Điều chỉnh tỷ lệ hiển thị phông chữ. Kích thước quá lớn có thể làm cắt bớt ký tự.</p>
-            
-            <div class="matrix-preview" id="countdown-preview">COUNT</div>
-            
-            <div class="grid-2" style="margin-top:10px;">
-                <button class="btn" onclick="triggerBLE('START_COUNTDOWN')">Bắt đầu đếm ngược</button>
-                <button class="btn btn-gray" onclick="triggerBLE('STOP_COUNTDOWN')">Dừng đếm ngược</button>
-            </div>
+        <h3>Công cụ chọn ngày đếm ngược</h3>
+        <input type="text" value="COUNT" id="countdown-text-input" oninput="document.getElementById('countdown-preview').innerText=this.value">
+        <div class="matrix-preview" id="countdown-preview">COUNT</div>
+        <div class="grid-2" style="margin-top:10px;">
+            <button class="btn btn-blue" onclick="sendCommand('START_COUNTDOWN')">Bắt đầu đếm ngược</button>
+            <button class="btn btn-gray" onclick="sendCommand('STOP_COUNTDOWN')">Dừng đếm ngược</button>
         </div>
     </div>
 
-    <!-- TAB 3: CHUYEN ANH -->
     <div id="tab-image" class="tab-content">
         <h3>Tải ảnh lên màn hình</h3>
         <input type="file" accept="image/*" style="margin-bottom:8px;">
-        
-        <label>Kích thước màn hình:</label>
-        <select><option>Chuyển đổi 4.2"</option><option>Chuyển đổi 2.9"</option><option>Chuyển đổi 2.13"</option></select>
-        
-        <label>Thuật toán tạo hiệu ứng nhiễu:</label>
-        <select><option>BWR Floyd-Steinberg</option><option>Đen Trắng Thuần</option></select>
-
-        <div class="range-box">
-            <label>Ngưỡng (chế độ đen trắng):</label>
-            <input type="range" min="0" max="255" value="128">
-        </div>
-        <div class="range-box">
-            <label>Góc xoay: 0 độ</label>
-            <input type="range" min="0" max="360" value="0">
-        </div>
-        <div class="range-box">
-            <label>Tỷ lệ: 100%</label>
-            <input type="range" min="10" max="200" value="100">
-        </div>
-
         <div class="grid-2">
-            <button class="btn" onclick="processImg('REFRESH')">Tải lại</button>
-            <button class="btn" onclick="processImg('ZOOM')">Phóng to màn hình</button>
-            <button class="btn" onclick="processImg('FIT')">Điều chỉnh cho phù hợp với màn hình</button>
-            <button class="btn" onclick="processImg('RESET')">Đặt lại về 100%</button>
-            <button class="btn" onclick="processImg('ROT_90')">Xoay theo chiều kim đồng hồ 90 độ</button>
-            <button class="btn" onclick="processImg('ROT_270')">Xoay ngược chiều kim đồng hồ 90 độ</button>
-        </div>
-        <button class="btn btn-block" onclick="processImg('RESET_ROT')">Đặt lại chế độ xoay</button>
-
-        <div style="width:100%; height:180px; border:1px solid #ccc; margin-bottom:10px; background:#fff; display:flex; justify-content:center; align-items:center; color:#aaa;">
-            [Khung xử lý hình ảnh]
-        </div>
-
-        <div style="border:1px solid #eee; padding:6px; background:#fdfdfd; margin-bottom:8px;">
-            <p><strong>Điều chỉnh hình ảnh</strong></p>
-            <div class="range-box"><label>Độ sáng: 100</label><input type="range" min="0" max="200" value="100"></div>
-            <div class="range-box"><label>Độ tương phản: 100</label><input type="range" min="0" max="200" value="100"></div>
-            <div class="range-box"><label>Độ bão hòa: 100</label><input type="range" min="0" max="200" value="100"></div>
-            <div class="range-box"><label>Cường độ khuếch tán: 50</label><input type="range" min="0" max="100" value="50"></div>
-        </div>
-
-        <div class="grid-2">
-            <button class="btn btn-blue" onclick="processImg('APPLY')">Áp dụng điều chỉnh hình ảnh</button>
-            <button class="btn" onclick="triggerBLE('UPLOAD_IMAGE')">Tải lên màn hình ngay</button>
+            <button class="btn btn-blue" onclick="logMessage('Áp dụng bộ lọc...')">Áp dụng bộ lọc ảnh</button>
+            <button class="btn btn-red" onclick="sendCommand('UPLOAD_IMAGE')">Tải lên màn hình ngay</button>
         </div>
     </div>
 
-    <!-- TAB 4: TRINH THIET KE MAU -->
     <div id="tab-designer" class="tab-content">
-        <div class="grid-2" style="grid-template-columns: 2fr 1fr;">
-            <div class="preview-box" id="design-canvas"></div>
-            <div>
-                <label>Đặt chiều rộng và chiều cao của phần tử</label>
-                <input type="number" value="40" id="el-w">
-                <input type="number" value="40" id="el-h">
-                <button class="btn btn-block" style="font-size:11px;" onclick="updateElSize()">Áp dụng kích thước</button>
-                
-                <label style="margin-top:10px;">Xoay phần tử</label>
-                <input type="range" min="0" max="360" value="0">
-                <span style="font-size:10px; float:right;">0 độ</span>
-                
-                <div style="margin-top:15px;">
-                    <button class="btn btn-red btn-block" style="font-size:11px;">Xóa phần tử</button>
-                    <button class="btn btn-blue btn-block" style="font-size:11px;">Sao chép phần tử</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid-2" style="grid-template-columns: 1fr 2fr;">
-            <div>
-                <label>Thêm phần tử</label>
-                <select id="designer-add-type">
-                    <option>Hình ảnh/Biểu tượng</option>
-                    <option>Văn bản tùy chỉnh</option>
-                    <option>Thời gian số</option>
-                </select>
-                <button class="btn btn-block" onclick="addDesignerItem()">Thêm phần tử</button>
-                <input type="text" value="Custom Text" style="margin-top:5px;" id="custom-text-val">
-            </div>
-            
-            <div>
-                <label>Chọn màu</label>
-                <div class="color-picker">
-                    <div class="color-dot" style="background:#fff;"></div>
-                    <div class="color-dot" style="background:#000;"></div>
-                    <div class="color-dot" style="background:#f44336;"></div>
-                    <div class="color-dot" style="background:#ffeb3b;"></div>
-                    <div class="color-dot" style="background:#4caf50;"></div>
-                    <div class="color-dot" style="background:#2196f3;"></div>
-                    <div class="color-dot" style="background:#e91e63;"></div>
-                    <div class="color-dot" style="background:#9c27b0;"></div>
-                    <div class="color-dot" style="background:#00bcd4;"></div>
-                    <div class="color-dot" style="background:#ff9800;"></div>
-                </div>
-                
-                <div class="grid-2">
-                    <select><option>Microsoft YaHei</option></select>
-                    <select><option>16px</option></select>
-                </div>
-                
-                <div style="display:flex; gap:3px; margin-bottom:6px;">
-                    <button class="btn btn-gray" style="flex:1; padding:5px;">In đậm</button>
-                    <button class="btn btn-gray" style="flex:1; padding:5px;">Chữ nghiêng</button>
-                    <button class="btn btn-gray" style="flex:1; padding:5px;">Gạch chân</button>
-                </div>
-                <button class="btn btn-block" onclick="updateTextContent()">Văn bản cập nhật</button>
-            </div>
-        </div>
-
-        <div class="grid-2" style="grid-template-columns: 2fr 1fr; margin-top:5px;">
-            <input type="text" value="https://luan15080.github.io/" id="qr-link-input">
-            <button class="btn btn-blue" onclick="generateQR()">Tạo mã QR</button>
-        </div>
-
-        <!-- Icons list I1 to I25 -->
+        <div class="preview-box" style="display:flex; justify-content:center; align-items:center; background:#eee;">Khung Canvas 400x300</div>
         <div class="icon-grid" style="margin-top:8px;">
             <script>
                 for(let i=1; i<=25; i++) {
-                    document.write(`<div class="icon-btn" onclick="addIcon('I${i}')">I${i}</div>`);
+                    document.write(`<div class="icon-btn" onclick="logMessage('Đã chọn icon I${i}')">I${i}</div>`);
                 }
             </script>
         </div>
-
-        <div class="grid-2">
-            <input type="text" value="#FFFFFF" style="margin:0; height:32px;">
-            <button class="btn" style="padding:4px;">Áp dụng</button>
-        </div>
-
-        <div class="grid-2" style="margin-top:5px;">
-            <button class="btn btn-blue" style="font-size:11px;">Tải lên hình nền</button>
-            <button class="btn btn-blue" style="font-size:11px;">Tải lên biểu tượng tùy chỉnh</button>
-        </div>
-        <button class="btn btn-blue btn-block" style="margin-top:5px;">Lưu Canvas dưới dạng Hình ảnh (có thể khôi phục thông qua quá trình tải lên nền)</button>
-
-        <button class="btn btn-red btn-block" style="margin-top:10px;">Xóa tất cả các thành phần trên Canvas</button>
-        <button class="btn btn-block" style="margin-top:5px;">Áp dụng mẫu và chuyển sang trang chuyển khoản.</button>
+        <button class="btn btn-block btn-blue">Áp dụng mẫu và truyền dữ liệu</button>
     </div>
 
-    <!-- LOG COMPONENT -->
-    <div id="log-terminal">Nhật ký:<br>01:01:52 : Kích thước khung vẽ đã được cập nhật thành công: 400x300</div>
+    <div id="log-terminal">Hệ thống: Sẵn sàng.</div>
 </div>
 
 <script>
+    let bleDevice = null;
+    let bleCharacteristic = null;
+
+    // Cấu hình mã UUID lọc mở rộng để trình duyệt ép buộc hiển thị bảng kết nối công khai
+    const UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    const UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
     function openTab(evt, tabId) {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tab-content");
@@ -298,18 +146,75 @@
     
     function logMessage(msg) {
         const term = document.getElementById('log-terminal');
-        term.innerHTML += `<br>${new Date().toLocaleTimeString()} : ${msg}`;
+        term.innerHTML += `<br>▸ ${msg}`;
         term.scrollTop = term.scrollHeight;
     }
 
     function clearLog() { document.getElementById('log-terminal').innerHTML = "Nhật ký:"; }
-    function triggerBLE(action) { logMessage("Đang thực hiện lệnh BLE: " + action); }
-    function processImg(action) { logMessage("Đang xử lý hình ảnh: " + action); }
-    function addDesignerItem() { logMessage("Đã thêm phần tử thiết kế"); }
-    function updateElSize() { logMessage("Đã áp dụng kích thước phần tử"); }
-    function updateTextContent() { logMessage("Đã cập nhật văn bản"); }
-    function generateQR() { logMessage("Đã tạo mã QR mã hóa liên kết"); }
-    function addIcon(id) { logMessage("Đã chọn chèn biểu tượng: " + id); }
+
+    // HÀM QUÉT THỰC TẾ SỬ DỤNG PHƯƠNG THỨC MỞ RỘNG
+    async function scanBluetoothDevice() {
+        logMessage("Đang yêu cầu kích hoạt bộ quét thiết bị...");
+        if (!navigator.bluetooth) {
+            logMessage("LỖI: Trình duyệt này hoàn toàn không hỗ trợ Web Bluetooth API.");
+            alert("Trình duyệt không hỗ trợ Bluetooth hoặc chưa bật quyền!");
+            return;
+        }
+
+        try {
+            // Sử dụng cấu hình nới lỏng tối đa để ép buộc Chrome hiển thị giao diện chọn thiết bị
+            bleDevice = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [UART_SERVICE_UUID]
+            });
+
+            logMessage("Đã chọn thiết bị: " + bleDevice.name);
+            logMessage("Đang kết nối tới cổng GATT...");
+            const server = await bleDevice.gatt.connect();
+            
+            logMessage("Đang lấy dịch vụ GATT...");
+            const service = await server.getPrimaryService(UART_SERVICE_UUID);
+            bleCharacteristic = await service.getCharacteristic(UART_TX_CHAR_UUID);
+            
+            logMessage("KẾT NỐI THÀNH CÔNG! Thiết bị đã sẵn sàng nhận lệnh.");
+            alert("Kết nối Bluetooth thành công!");
+        } catch (error) {
+            logMessage("Yêu cầu quét bị hủy hoặc gặp lỗi: " + error.message);
+        }
+    }
+
+    async function sendCommand(action) {
+        if (!bleCharacteristic) {
+            logMessage("Lỗi: Chưa có kết nối Bluetooth hoạt động.");
+            alert("Vui lòng kết nối Bluetooth trước!");
+            return;
+        }
+        try {
+            let encoder = new TextEncoder();
+            let dataBuffer = encoder.encode(action + '\n');
+            await bleCharacteristic.writeValue(dataBuffer);
+            logMessage("Đã gửi thành công lệnh: " + action);
+        } catch (error) {
+            logMessage("Lỗi gửi dữ liệu: " + error.message);
+        }
+    }
+
+    function reconnectDevice() {
+        if (bleDevice && bleDevice.gatt.connected) {
+            logMessage("Thiết bị đang được kết nối sẵn.");
+        } else if (bleDevice) {
+            logMessage("Đang thử kết nối lại...");
+            bleDevice.gatt.connect().then(() => logMessage("Đã kết nối lại!")).catch(e => logMessage("Thất bại: " + e.message));
+        } else {
+            logMessage("Chưa từng kết nối với thiết bị nào trước đây.");
+        }
+    }
+
+    function syncTime() {
+        let now = new Date();
+        document.getElementById('btn-time-sync').innerText = `Thời gian thiết lập: ${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.toTimeString().split(' ')[0]}`;
+        logMessage("Đã cập nhật bộ đếm thời gian hệ thống.");
+    }
 </script>
 
 </body>
