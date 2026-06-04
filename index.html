@@ -3,41 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thẻ E-Paper 2.9" - Đồng Bộ</title>
+    <title>Thẻ E-Paper 2.9" - Đồng Bộ Mặt Đồng Hồ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
     <style>
-        /* GIỮ NGUYÊN CÁC STYLE CŨ CỦA ANH */
-        body { font-family: Arial, sans-serif; margin: 10px; background-color: #f9f9f9; }
-        
-        /* CẤU HÌNH NÚT BLUETOOTH ĐA TRẠNG THÁI */
+        /* ... Các CSS cũ của anh ... */
         .btn-conn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; text-align: center; font-size: 16px; margin-bottom: 10px; transition: 0.3s; }
         .state-idle { background-color: #4CAF50; }
         .state-connecting { background-color: #FFC107; color: #333; }
         .state-connected { background-color: #2196F3; }
         .state-error { background-color: #F44336; }
-
-        /* GIỮ NGUYÊN CÁC STYLE LAYOUT ANH ĐÃ CÓ */
+        /* Giữ nguyên các class CSS còn lại từ code gốc của anh */
+        body { font-family: Arial, sans-serif; margin: 10px; background-color: #f9f9f9; }
+        .section-title { font-size: 16px; font-weight: bold; color: #333; border-left: 4px solid #4CAF50; padding-left: 8px; margin: 15px 0 10px 0; }
         .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .template-card-item { background: white; border: 2px solid #e0e0e0; border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; }
         .template-card-item.selected-active { border-color: #2196F3; background-color: #f0f7ff; }
         #khung-xem-truoc { border: 3px solid #000; border-radius: 8px; background-color: #fff; min-height: 250px; padding: 10px; margin-bottom: 15px; }
         .btn-sync { width: 100%; padding: 15px; background: #2196F3; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .input-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
+        .input-row input { width: 60%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .log-box { margin-top: 15px; background: #222; color: #22ff22; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <!-- NÚT KẾT NỐI MỚI THAY THẾ CHO NÚT CŨ -->
     <button id="btn-bluetooth" class="btn-conn state-idle">Kết nối Bluetooth</button>
 
-    <!-- (Dán tiếp phần khung template và các div cũ của anh tại đây) -->
+    <div class="section-title">Chạm Trực Tiếp Để Chọn Mặt Màn Hình</div>
+    <div class="template-grid" id="grid-templates">
+        </div>
+
+    <div class="section-title">Khung Xem Trước Thực Tế</div>
     <div id="khung-xem-truoc"></div>
 
     <button class="btn-sync" id="btn-transfer-data">ĐỒNG BỘ GIỜ ĐIỆN THOẠI XUỐNG MÀN HÌNH</button>
 
+    <div class="input-row"><label>Dương Lịch:</label><input type="text" id="input-duong-lich" readonly></div>
+    <div class="input-row"><label>Âm Lịch:</label><input type="text" id="input-am-lich" readonly></div>
+    <div class="input-row"><label>Hiệu chỉnh nhiệt độ (°C):</label><input type="number" id="input-nhiet-do" value="30"></div>
+    <div class="log-box" id="system-log">Hệ thống sẵn sàng.</div>
+
     <script>
         const btnBluetooth = document.getElementById('btn-bluetooth');
         
-        // CẬP NHẬT TRẠNG THÁI NÚT
         function updateBtnState(state) {
             btnBluetooth.className = "btn-conn";
             if(state === 'idle') { btnBluetooth.classList.add('state-idle'); btnBluetooth.innerText = "Kết nối Bluetooth"; }
@@ -46,11 +54,10 @@
             else if(state === 'error') { btnBluetooth.classList.add('state-error'); btnBluetooth.innerText = "❌ Thử lại kết nối"; }
         }
 
-        // KẾT NỐI BLUETOOTH
         btnBluetooth.addEventListener('click', async () => {
             updateBtnState('connecting');
             try {
-                // ĐOẠN LOGIC GỐC CỦA ANH VÀO ĐÂY
+                // LOGIC GỐC CỦA ANH
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true, 
                     optionalServices: ["0000ffe0-0000-1000-8000-00805f9b34fb"]
@@ -63,8 +70,7 @@
             }
         });
 
-        // BẮT BUỘC: DÁN LẠI HÀM renderTemplate() VÀ CÁC HÀM CŨ CỦA ANH Ở DƯỚI NÀY
+        // DÁN CÁC HÀM CŨ CỦA ANH VÀO ĐÂY: renderTemplate, transferDataToHardware, getPhoneTimeDetails, ...
     </script>
 </body>
 </html>
-
