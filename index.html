@@ -46,6 +46,7 @@
             margin: 15px 0 10px 0;
         }
         
+        /* Danh sách các ô chọn mẫu mặt đồng hồ */
         .template-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -77,6 +78,7 @@
             font-weight: bold;
         }
 
+        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER 2.9 INCH) */
         #khung-xem-truoc {
             border: 3px solid #000;
             border-radius: 8px;
@@ -87,6 +89,7 @@
             margin-bottom: 15px;
         }
         
+        /* Cấu trúc chung cho các Mẫu đảm bảo luôn có khoảng trống danh ngôn dưới đáy */
         .template-box {
             display: flex;
             flex-direction: column;
@@ -110,7 +113,13 @@
             margin-top: 5px;
             margin-bottom: 5px;
         }
+        .divider {
+            border: 0;
+            border-top: 1px solid #000;
+            margin: 5px 0;
+        }
         
+        /* Style Mẫu 1: Đồng hồ lật dài */
         .flip-clock-display {
             display: flex;
             justify-content: center;
@@ -133,6 +142,7 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
+        /* Style Mẫu 5: Cấu trúc chia đôi Lịch tháng | Kim tròn */
         .month-split-container {
             display: flex;
             flex: 1;
@@ -150,6 +160,7 @@
             align-items: center;
         }
         
+        /* Lưới lịch tháng */
         .grid-week-header, .grid-days-body {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -166,6 +177,7 @@
             margin-top: 4px; 
         }
         
+        /* Ô ngày gồm Dương lịch trên và Âm lịch dưới */
         .day-item { 
             display: flex;
             flex-direction: column;
@@ -192,6 +204,7 @@
             color: #fff !important;
         }
         
+        /* Giao diện Mặt đồng hồ kim tròn */
         .analog-dial {
             width: 95px;
             height: 95px;
@@ -216,6 +229,7 @@
         .minute-hand { width: 2px; height: 35px; }
         .second-hand { width: 1px; height: 38px; background-color: red; }
 
+        /* VÀNG HIỂN THỊ DANH NGÔN CHUNG CHO TẤT CẢ CÁC MẪU */
         .global-footer-quote-zone {
             width: 100%;
             text-align: center;
@@ -231,6 +245,7 @@
             margin-top: auto;
         }
 
+        /* Ô nhập liệu phụ ở dưới đáy trang web */
         .adjustment-box {
             margin-top: 15px;
             background: white;
@@ -251,6 +266,7 @@
             border-radius: 4px;
         }
         
+        /* Trạng thái Log hệ thống */
         .log-box {
             margin-top: 15px;
             background: #222;
@@ -273,7 +289,7 @@
 
     <div class="section-title">Chạm Trực Tiếp Để Chọn Mặt Màn Hình</div>
     
-    <div class="template-grid" id="template-grid">
+    <div class="template-grid">
         <div class="template-card-item selected-active">
             <div class="card-title">Mẫu 1: Đồng Hồ Lật Dài</div>
             <div class="card-demo-box" style="background:#000; color:#fff; font-size:14px;">12:30</div>
@@ -336,11 +352,13 @@
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // UUID đã được cập nhật chính xác cho thiết bị của bạn
+        // Đã cập nhật UUID theo yêu cầu
         const BLE_SERVICE_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
-        let bleCharacteristic = null;
+        const BLE_CHARACTERISTIC_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
         let bluetoothDevice = null;
+        let bleCharacteristic = null;
 
+        // Kho danh ngôn thay đổi tự động theo ngày trong tháng
         const dailyQuotes = [
             "Hành trình vạn dặm bắt đầu từ một bước chân.",
             "Hôm nay là một ngày tuyệt vời để cố gắng.",
@@ -388,30 +406,74 @@
             let hh = now.getHours();
             let mm = now.getMinutes();
             let ss = now.getSeconds();
+            
             let hhStr = String(hh).padStart(2, '0');
             let mmStr = String(mm).padStart(2, '0');
             let ssStr = String(ss).padStart(2, '0');
             let dateStr = String(now.getDate()).padStart(2, '0') + "/" + String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
             let dayStr = daysOfWeek[now.getDay()];
+
             let lunarText = "Âm Lịch"; 
+            let lunarDayStr = "";
+
             if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
                 try {
                     let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-                    lunarText = `Âm Lịch ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
-                } catch (e) { lunarText = "Âm Lịch --/--"; }
+                    lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+                    lunarText = `Âm Lịch ${lunarDayStr}`;
+                } catch (e) {
+                    lunarText = "Âm Lịch --/--";
+                }
+            } else {
+                lunarText = "Âm Lịch --/--"; 
             }
-            return { year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(), hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(), hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText };
+
+            return { 
+                year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(),
+                hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(),
+                hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText
+            };
         }
 
         function generateCalendarGrid(year, month, currentDay) {
             let firstDay = new Date(year, month - 1, 1).getDay();
             let daysInMonth = new Date(year, month, 0).getDate();
-            let html = `<div class="grid-week-header"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div><div class="grid-days-body">`;
+            
+            let html = `
+                <div class="grid-week-header">
+                    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+                </div>
+                <div class="grid-days-body">
+            `;
+            
             let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
-            for (let i = 0; i < startOffset; i++) { html += `<div class="day-item empty"></div>`; }
+            for (let i = 0; i < startOffset; i++) { 
+                html += `<div class="day-item empty"></div>`; 
+            }
+            
             for (let day = 1; day <= daysInMonth; day++) {
                 let isTodayClass = (day === currentDay) ? "day-item active-today" : "day-item";
-                html += `<div class="${isTodayClass}"><span class="solar-day">${day}</span></div>`;
+                let subLunarText = "--"; 
+
+                if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
+                    try {
+                        let cellLunar = LunarCalendar.solarToLunar(year, month, day);
+                        if (cellLunar.lunarDay === 1) {
+                            subLunarText = `${String(cellLunar.lunarDay).padStart(2, '0')}/${String(cellLunar.lunarMonth).padStart(2, '0')}`;
+                        } else {
+                            subLunarText = String(cellLunar.lunarDay).padStart(2, '0');
+                        }
+                    } catch (e) {
+                        subLunarText = "--";
+                    }
+                }
+                
+                html += `
+                    <div class="${isTodayClass}">
+                        <span class="solar-day">${day}</span>
+                        <span class="lunar-sub-day">${subLunarText}</span>
+                    </div>
+                `;
             }
             html += `</div>`;
             return html;
@@ -419,72 +481,127 @@
 
         function renderTemplate() {
             const timeData = getPhoneTimeDetails();
-            document.getElementById("input-duong-lich").value = timeData.date;
-            document.getElementById("input-am-lich").value = timeData.lunar;
-            document.getElementById("input-thu").value = timeData.day;
+            
+            if(document.getElementById("input-duong-lich")) document.getElementById("input-duong-lich").value = timeData.date;
+            if(document.getElementById("input-am-lich")) document.getElementById("input-am-lich").value = timeData.lunar;
+            if(document.getElementById("input-thu")) document.getElementById("input-thu").value = timeData.day;
+
             const previewContainer = document.getElementById("khung-xem-truoc");
-            let currentTemp = document.getElementById("input-nhiet-do").value;
+            if (!previewContainer) return;
+
+            let templateHTML = "";
+            let currentTemp = document.getElementById("input-nhiet-do") ? document.getElementById("input-nhiet-do").value : 30;
+            
             let quoteIndex = (timeData.dayRaw - 1) % dailyQuotes.length;
             let currentQuoteText = `"${dailyQuotes[quoteIndex]}"`;
 
-            // Phần renderTemplate này giữ nguyên cấu trúc cũ của bạn...
-            // (Đã rút gọn logic trong hiển thị để đảm bảo bạn copy đủ code)
-        }
+            switch (currentTemplateIndex) {
+                case 1:
+                    templateHTML = `
+                        <div class="template-box">
+                            <div>
+                                <div class="header-row">
+                                    <span>${timeData.day} - ${timeData.date}</span>
+                                    <span>🔋 3.7V</span>
+                                </div>
+                                <div class="flip-clock-display">
+                                    <div class="flip-unit">${timeData.hour[0]}</div>
+                                    <div class="flip-unit">${timeData.hour[1]}</div>
+                                    <div class="flip-separator">:</div>
+                                    <div class="flip-unit">${timeData.min[0]}</div>
+                                    <div class="flip-unit">${timeData.min[1]}</div>
+                                </div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
 
-        async function connectBluetooth() {
-            try {
-                logToSystem("Đang mở chọn thiết bị...");
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: [BLE_SERVICE_UUID] }]
-                });
-                const server = await bluetoothDevice.gatt.connect();
-                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
-                const characteristics = await service.getCharacteristics();
-                bleCharacteristic = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
-                
-                if (bleCharacteristic) {
-                    logToSystem("Kết nối thành công!");
-                    alert("Đã kết nối!");
-                }
-            } catch (error) {
-                logToSystem(`Lỗi: ${error.message}`);
-            }
-        }
+                case 2:
+                    templateHTML = `
+                        <div class="template-box" style="text-align:center;">
+                            <div>
+                                <div class="header-row">${timeData.day} - ${timeData.date}</div>
+                                <div style="font-size:65px; font-weight:bold; margin:5px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
+                                <div class="footer-row">
+                                    <span>🌙 ${timeData.lunar}</span>
+                                    <span>🕒 ${timeData.hour}:${timeData.min}</span>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
 
-        async function transferDataToHardware() {
-            if (!bleCharacteristic) return alert("Kết nối Bluetooth trước!");
-            try {
-                const t = getPhoneTimeDetails();
-                let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
-                let dataBuffer = new Uint8Array([0xAA, currentTemplateIndex, t.year % 100, t.month, t.dayRaw, t.hourRaw, t.minRaw, t.dayOfWeekRaw, tempVal, 0xBB]);
-                await bleCharacteristic.writeValue(dataBuffer);
-                logToSystem("Đã gửi dữ liệu!");
-                alert("Đồng bộ thành công!");
-            } catch (error) {
-                logToSystem(`Lỗi truyền byte: ${error.message}`);
-            }
-        }
+                case 3:
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:6px; margin-top:10px;">
+                                <div style="font-size:46px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
+                                <div style="font-size:14px; font-weight:bold; border-top:1px solid #000; padding-top:4px; width:140px; text-align:center;">
+                                    ${timeData.day} | ${timeData.date}
+                                </div>
+                                <div style="font-size:13px;">🌙 ${timeData.lunar}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
 
-        function setupTemplateSelection() {
-            const templates = document.querySelectorAll(".template-card-item");
-            templates.forEach((card, index) => {
-                card.addEventListener("click", () => {
-                    templates.forEach(c => c.classList.remove("selected-active"));
-                    card.classList.add("selected-active");
-                    currentTemplateIndex = index + 1;
-                    renderTemplate();
-                });
-            });
-        }
+                case 4:
+                    templateHTML = `
+                        <div class="template-box" style="text-align:center;">
+                            <div style="display:flex; flex-direction:column; justify-content:center; flex:1; gap:10px;">
+                                <div style="font-size:15px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
+                                <div style="font-size:20px; font-weight:bold; color:red; border:2px dashed red; padding:6px; border-radius:4px; width:85%; margin:0 auto;">
+                                    ${timeData.lunar.toUpperCase()}
+                                </div>
+                                <div style="font-size:13px; font-weight:bold;">Giờ hệ thống: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
 
-        window.onload = function() {
-            setupTemplateSelection();
-            renderTemplate(); 
-            setInterval(renderTemplate, 1000);
-            document.getElementById("btn-sync-hardware").addEventListener("click", connectBluetooth);
-            document.getElementById("btn-transfer-data").addEventListener("click", transferDataToHardware);
-        };
-    </script>
-</body>
-</html>
+                case 5:
+                    templateHTML = `
+                        <div class="template-box">
+                            <div>
+                                <div class="header-row">
+                                    <span>Tháng ${timeData.month} / ${timeData.year}</span>
+                                    <span>🌡️ ${currentTemp}°C</span>
+                                </div>
+                                
+                                <div class="month-split-container">
+                                    <div class="calendar-matrix-left">
+                                        ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
+                                    </div>
+                                    <div class="analog-clock-right">
+                                        <div class="analog-dial">
+                                            <div class="hour-mark m-12">12</div>
+                                            <div class="hour-mark m-3">3</div>
+                                            <div class="hour-mark m-6">6</div>
+                                            <div class="hour-mark m-9">9</div>
+                                            <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                            <div class="hand minute-hand" style="transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                            <div class="hand second-hand" style="transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 6:
+                    templateHTML = `
+                        <div class="template-box" style="align-items:center;">
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:5px;">
+                                <div class="analog-dial" style="width:130px; height:130px;">
+                                    <div class="hour-mark m-12"
 
