@@ -46,7 +46,6 @@
             margin: 15px 0 10px 0;
         }
         
-        /* Danh sách các ô chọn mẫu mặt đồng hồ */
         .template-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -78,7 +77,6 @@
             font-weight: bold;
         }
 
-        /* KHUNG XEM TRƯỚC THỰC TẾ (MÔ PHỎNG MÀN E-PAPER 2.9 INCH) */
         #khung-xem-truoc {
             border: 3px solid #000;
             border-radius: 8px;
@@ -89,7 +87,6 @@
             margin-bottom: 15px;
         }
         
-        /* Cấu trúc chung cho các Mẫu đảm bảo luôn có khoảng trống danh ngôn dưới đáy */
         .template-box {
             display: flex;
             flex-direction: column;
@@ -119,7 +116,6 @@
             margin: 5px 0;
         }
         
-        /* Style Mẫu 1: Đồng hồ lật dài */
         .flip-clock-display {
             display: flex;
             justify-content: center;
@@ -142,7 +138,6 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Style Mẫu 5: Cấu trúc chia đôi Lịch tháng | Kim tròn */
         .month-split-container {
             display: flex;
             flex: 1;
@@ -160,7 +155,6 @@
             align-items: center;
         }
         
-        /* Lưới lịch tháng */
         .grid-week-header, .grid-days-body {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -177,7 +171,6 @@
             margin-top: 4px; 
         }
         
-        /* Ô ngày gồm Dương lịch trên và Âm lịch dưới */
         .day-item { 
             display: flex;
             flex-direction: column;
@@ -204,7 +197,6 @@
             color: #fff !important;
         }
         
-        /* Giao diện Mặt đồng hồ kim tròn */
         .analog-dial {
             width: 95px;
             height: 95px;
@@ -229,7 +221,6 @@
         .minute-hand { width: 2px; height: 35px; }
         .second-hand { width: 1px; height: 38px; background-color: red; }
 
-        /* VÀNG HIỂN THỊ DANH NGÔN CHUNG CHO TẤT CẢ CÁC MẪU */
         .global-footer-quote-zone {
             width: 100%;
             text-align: center;
@@ -245,7 +236,6 @@
             margin-top: auto;
         }
 
-        /* Ô nhập liệu phụ ở dưới đáy trang web */
         .adjustment-box {
             margin-top: 15px;
             background: white;
@@ -266,7 +256,6 @@
             border-radius: 4px;
         }
         
-        /* Trạng thái Log hệ thống */
         .log-box {
             margin-top: 15px;
             background: #222;
@@ -352,13 +341,11 @@
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // Đã cập nhật UUID theo yêu cầu
         const BLE_SERVICE_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
         const BLE_CHARACTERISTIC_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
         let bluetoothDevice = null;
         let bleCharacteristic = null;
 
-        // Kho danh ngôn thay đổi tự động theo ngày trong tháng
         const dailyQuotes = [
             "Hành trình vạn dặm bắt đầu từ một bước chân.",
             "Hôm nay là một ngày tuyệt vời để cố gắng.",
@@ -603,5 +590,113 @@
                         <div class="template-box" style="align-items:center;">
                             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:5px;">
                                 <div class="analog-dial" style="width:130px; height:130px;">
-                                    <div class="hour-mark m-12"
+                                    <div class="hour-mark m-12" style="font-size:12px;">12</div>
+                                    <div class="hour-mark m-3" style="font-size:12px;">3</div>
+                                    <div class="hour-mark m-6" style="font-size:12px;">6</div>
+                                    <div class="hour-mark m-9" style="font-size:12px;">9</div>
+                                    <div class="hand hour-hand" style="width:4px; height:32px; transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg)"></div>
+                                    <div class="hand minute-hand" style="width:2.5px; height:48px; transform: rotate(${timeData.minRaw * 6}deg)"></div>
+                                    <div class="hand second-hand" style="width:1px; height:52px; transform: rotate(${timeData.secRaw * 6}deg)"></div>
+                                </div>
+                                <div style="margin-top:4px; font-weight:bold; font-size:13px;">🌙 ${timeData.lunar}</div>
+                            </div>
+                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            previewContainer.innerHTML = templateHTML;
+        }
+
+        async function connectBluetooth() {
+            try {
+                logToSystem("Đang mở cửa sổ chọn thiết bị...");
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [BLE_SERVICE_UUID]
+                });
+
+                logToSystem(`Đang kết nối tới: ${bluetoothDevice.name || "Thiết bị không tên"}`);
+                const server = await bluetoothDevice.gatt.connect();
+                
+                logToSystem("Đang tìm dịch vụ dữ liệu chính...");
+                const service = await server.getPrimaryService(BLE_SERVICE_UUID);
+                
+                bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
+                logToSystem("Kết nối thành công! Thiết bị đã sẵn sàng nhận dữ liệu.");
+                alert(`Đã kết nối thành công tới: ${bluetoothDevice.name || "Mạch E-Paper"}`);
+            } catch (error) {
+                logToSystem(`Lỗi: ${error.message}`);
+                alert(`Không thể kết nối: ${error.message}`);
+            }
+        }
+
+        async function transferDataToHardware() {
+            if (!bleCharacteristic) {
+                alert("Vui lòng bấm nút 'Kết nối Bluetooth' trước khi đồng bộ!");
+                return;
+            }
+
+            try {
+                const t = getPhoneTimeDetails();
+                let tempVal = parseInt(document.getElementById("input-nhiet-do").value) || 30;
+
+                let dataBuffer = new Uint8Array([
+                    0xAA, 
+                    currentTemplateIndex,
+                    t.year % 100,
+                    t.month,
+                    t.dayRaw,
+                    t.hourRaw,
+                    t.minRaw,
+                    t.dayOfWeekRaw,
+                    tempVal,
+                    0xBB
+                ]);
+
+                logToSystem(`Đang gửi dữ liệu Mẫu ${currentTemplateIndex}...`);
+                await bleCharacteristic.writeValue(dataBuffer);
+                
+                logToSystem(`Đồng bộ gói tin thành công xuống mạch phần cứng!`);
+                alert("Đã đồng bộ thời gian và giao diện xuống màn hình thành công!");
+            } catch (error) {
+                logToSystem(`Lỗi truyền byte: ${error.message}`);
+                alert(`Gặp lỗi khi gửi dữ liệu: ${error.message}`);
+            }
+        }
+
+        function setupTemplateSelection() {
+            const templates = document.querySelectorAll(".template-card-item");
+            templates.forEach((card, index) => {
+                card.addEventListener("click", () => {
+                    templates.forEach(c => c.classList.remove("selected-active"));
+                    card.classList.add("selected-active");
+                    currentTemplateIndex = index + 1;
+                    logToSystem(`Đã chọn Mẫu ${currentTemplateIndex}`);
+                    renderTemplate();
+                });
+            });
+        }
+
+        window.onload = function() {
+            setupTemplateSelection();
+            renderTemplate(); 
+            
+            setInterval(() => {
+                renderTemplate(); 
+            }, 1000);
+
+            const btnConnect = document.getElementById("btn-sync-hardware");
+            if(btnConnect) btnConnect.addEventListener("click", connectBluetooth);
+
+            const btnTransfer = document.getElementById("btn-transfer-data");
+            if(btnTransfer) btnTransfer.addEventListener("click", transferDataToHardware);
+            
+            const inputTemp = document.getElementById("input-nhiet-do");
+            if(inputTemp) inputTemp.addEventListener("input", renderTemplate);
+        };
+    </script>
+</body>
+</html>
 
