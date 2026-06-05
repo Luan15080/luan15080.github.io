@@ -3,76 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DLG-CLOCK Master Controller</title>
+    <title>DLG-CLOCK Master</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-calendar/0.1.4/lunar-calendar.min.js"></script>
     <style>
-        :root { --main: #2196F3; --bg: #f4f4f4; }
-        body { font-family: sans-serif; padding: 10px; background: var(--bg); margin: 0; }
-        .btn { width: 100%; padding: 15px; border: none; color: white; font-weight: bold; margin: 5px 0; border-radius: 6px; cursor: pointer; }
-        #log { background: #000; color: #0f0; padding: 10px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; margin-top: 10px; border-radius: 4px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .card { padding: 10px; border: 2px solid #ccc; text-align: center; background: #fff; cursor: pointer; }
-        .active { border-color: var(--main); background: #e3f2fd; }
-        #preview { border: 3px solid #000; background: #fff; padding: 15px; text-align: center; min-height: 150px; }
+        body { font-family: sans-serif; padding: 15px; background: #f0f0f0; margin: 0; }
+        .btn { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .card { padding: 15px; border: 2px solid #ccc; text-align: center; background: white; cursor: pointer; border-radius: 8px; }
+        .card.active { border-color: #2196F3; background: #e3f2fd; }
+        #preview { border: 3px solid #000; padding: 15px; min-height: 200px; background: white; margin-bottom: 15px; border-radius: 8px; }
+        #log { background: #000; color: #0f0; padding: 10px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <button class="btn" style="background:#4CAF50" onclick="connect()">1. KẾT NỐI BLUETOOTH</button>
     
-    <div class="grid" id="grid">
-        <div class="card active" onclick="select(1)">Mẫu 1: Lật</div>
-        <div class="card" onclick="select(2)">Mẫu 2: Lịch</div>
-        <div class="card" onclick="select(3)">Mẫu 3: Số To</div>
-        <div class="card" onclick="select(4)">Mẫu 4: Âm</div>
-        <div class="card" onclick="select(5)">Mẫu 5: Tháng</div>
-        <div class="card" onclick="select(6)">Mẫu 6: Kim</div>
+    <div class="grid">
+        <div class="card active" onclick="setTemp(1)">Mẫu 1</div>
+        <div class="card" onclick="setTemp(2)">Mẫu 2</div>
+        <div class="card" onclick="setTemp(3)">Mẫu 3</div>
+        <div class="card" onclick="setTemp(4)">Mẫu 4</div>
+        <div class="card" onclick="setTemp(5)">Mẫu 5</div>
+        <div class="card" onclick="setTemp(6)">Mẫu 6</div>
     </div>
 
     <div id="preview"></div>
 
-    <button class="btn" style="background:var(--main)" onclick="send()">2. ĐỒNG BỘ MÀN HÌNH</button>
+    <button class="btn" style="background:#2196F3" onclick="sync()">2. ĐỒNG BỘ MÀN HÌNH</button>
     <div id="log">Hệ thống sẵn sàng...</div>
 
     <script>
-        let char, currentID = 1;
+        let char, tempID = 1;
         const SERVICE = "0000ffe0-0000-1000-8000-00805f9b34fb";
-        const CHAR_WRITE = "0000ffe1-0000-1000-8000-00805f9b34fb";
+        const CHAR = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
-        function log(m) { document.getElementById('log').innerHTML += `<br>> ${m}`; }
+        function log(m) { const l = document.getElementById('log'); l.innerHTML += `<br>• ${m}`; l.scrollTop = l.scrollHeight; }
 
-        function select(id) {
-            currentID = id;
+        function setTemp(id) {
+            tempID = id;
             document.querySelectorAll('.card').forEach((c, i) => c.classList.toggle('active', i+1 == id));
+            render();
         }
 
         async function connect() {
             try {
-                const dev = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [SERVICE]
-                });
+                log("Đang quét...");
+                const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [SERVICE] });
                 const server = await dev.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE);
-                char = await service.getCharacteristic(CHAR_WRITE);
-                log("Đã kết nối: " + dev.name);
-            } catch(e) { log("Lỗi kết nối: " + e); }
+                char = await service.getCharacteristic(CHAR);
+                log("Kết nối thành công: " + dev.name);
+            } catch(e) { log("Lỗi: " + e); }
         }
 
-        async function send() {
-            if(!char) { alert("Chưa kết nối!"); return; }
+        async function sync() {
+            if(!char) { alert("Chưa kết nối Bluetooth!"); return; }
             const now = new Date();
-            // Cấu trúc gói tin 10 bytes khớp với firmware DLG-CLOCK
-            const buffer = new Uint8Array([
-                0xAA, currentID, now.getFullYear()%100, now.getMonth()+1, 
+            // Gói tin 10 bytes: [Header, ID, Năm, Tháng, Ngày, Giờ, Phút, Thứ, Nhiệt, Footer]
+            const data = new Uint8Array([
+                0xAA, tempID, now.getFullYear()%100, now.getMonth()+1, 
                 now.getDate(), now.getHours(), now.getMinutes(), now.getDay(), 30, 0xBB
             ]);
             try {
-                await char.writeValue(buffer);
-                log("Đã gửi mẫu " + currentID);
+                await char.writeValue(data);
+                log("Đã gửi mẫu " + tempID);
             } catch(e) { log("Lỗi gửi: " + e); }
         }
+
+        function render() {
+            document.getElementById('preview').innerHTML = `<h3>Mẫu ${tempID}</h3><p>Thời gian: ${new Date().toLocaleTimeString()}</p>`;
+        }
+
+        setInterval(render, 1000);
+        render();
     </script>
 </body>
 </html>
-
