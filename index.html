@@ -340,9 +340,8 @@
     <script>
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
-
-        let bluetoothDevice = null;
         let bleCharacteristic = null;
+        const BLE_SERVICE_UUID = '00001f10-0000-1000-8000-00805f9b34fb';
 
         const dailyQuotes = [
             "Hành trình vạn dặm bắt đầu từ một bước chân.",
@@ -399,177 +398,30 @@
             let dayStr = daysOfWeek[now.getDay()];
 
             let lunarText = "Âm Lịch"; 
-            let lunarDayStr = "";
-
             if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
                 try {
                     let lunar = LunarCalendar.solarToLunar(now.getFullYear(), now.getMonth() + 1, now.getDate());
-                    lunarDayStr = `${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
-                    lunarText = `Âm Lịch ${lunarDayStr}`;
-                } catch (e) {
-                    lunarText = "Âm Lịch --/--";
-                }
-            } else {
-                lunarText = "Âm Lịch --/--"; 
+                    lunarText = `Âm Lịch ${String(lunar.lunarDay).padStart(2, '0')}/${String(lunar.lunarMonth).padStart(2, '0')}`;
+                } catch (e) { lunarText = "Âm Lịch --/--"; }
             }
-
-            return { 
-                year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(),
-                hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(),
-                hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText
-            };
+            return { year: now.getFullYear(), month: now.getMonth() + 1, dayRaw: now.getDate(), hourRaw: hh, minRaw: mm, secRaw: ss, dayOfWeekRaw: now.getDay(), hour: hhStr, min: mmStr, sec: ssStr, date: dateStr, day: dayStr, lunar: lunarText };
         }
 
         function generateCalendarGrid(year, month, currentDay) {
             let firstDay = new Date(year, month - 1, 1).getDay();
             let daysInMonth = new Date(year, month, 0).getDate();
-            
-            let html = `
-                <div class="grid-week-header">
-                    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-                </div>
-                <div class="grid-days-body">
-            `;
-            
+            let html = `<div class="grid-week-header"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div><div class="grid-days-body">`;
             let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
-            for (let i = 0; i < startOffset; i++) { 
-                html += `<div class="day-item empty"></div>`; 
-            }
-            
+            for (let i = 0; i < startOffset; i++) { html += `<div class="day-item empty"></div>`; }
             for (let day = 1; day <= daysInMonth; day++) {
                 let isTodayClass = (day === currentDay) ? "day-item active-today" : "day-item";
-                let subLunarText = "--"; 
-
-                if (typeof LunarCalendar !== 'undefined' && LunarCalendar.solarToLunar) {
-                    try {
-                        let cellLunar = LunarCalendar.solarToLunar(year, month, day);
-                        if (cellLunar.lunarDay === 1) {
-                            subLunarText = `${String(cellLunar.lunarDay).padStart(2, '0')}/${String(cellLunar.lunarMonth).padStart(2, '0')}`;
-                        } else {
-                            subLunarText = String(cellLunar.lunarDay).padStart(2, '0');
-                        }
-                    } catch (e) {
-                        subLunarText = "--";
-                    }
-                }
-                
-                html += `
-                    <div class="${isTodayClass}">
-                        <span class="solar-day">${day}</span>
-                        <span class="lunar-sub-day">${subLunarText}</span>
-                    </div>
-                `;
+                html += `<div class="${isTodayClass}"><span class="solar-day">${day}</span><span class="lunar-sub-day">--</span></div>`;
             }
-            html += `</div>`;
-            return html;
+            return html + `</div>`;
         }
 
         function renderTemplate() {
             const timeData = getPhoneTimeDetails();
-            
             if(document.getElementById("input-duong-lich")) document.getElementById("input-duong-lich").value = timeData.date;
             if(document.getElementById("input-am-lich")) document.getElementById("input-am-lich").value = timeData.lunar;
-            if(document.getElementById("input-thu")) document.getElementById("input-thu").value = timeData.day;
-
-            const previewContainer = document.getElementById("khung-xem-truoc");
-            if (!previewContainer) return;
-
-            let templateHTML = "";
-            let currentTemp = document.getElementById("input-nhiet-do") ? document.getElementById("input-nhiet-do").value : 30;
-            
-            let quoteIndex = (timeData.dayRaw - 1) % dailyQuotes.length;
-            let currentQuoteText = `"${dailyQuotes[quoteIndex]}"`;
-
-            switch (currentTemplateIndex) {
-                case 1:
-                    templateHTML = `
-                        <div class="template-box">
-                            <div>
-                                <div class="header-row">
-                                    <span>${timeData.day} - ${timeData.date}</span>
-                                    <span>🔋 3.7V</span>
-                                </div>
-                                <div class="flip-clock-display">
-                                    <div class="flip-unit">${timeData.hour[0]}</div>
-                                    <div class="flip-unit">${timeData.hour[1]}</div>
-                                    <div class="flip-separator">:</div>
-                                    <div class="flip-unit">${timeData.min[0]}</div>
-                                    <div class="flip-unit">${timeData.min[1]}</div>
-                                </div>
-                                <div class="footer-row">
-                                    <span>🌙 ${timeData.lunar}</span>
-                                    <span>🌡️ ${currentTemp}°C</span>
-                                </div>
-                            </div>
-                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
-                        </div>
-                    `;
-                    break;
-
-                case 2:
-                    templateHTML = `
-                        <div class="template-box" style="text-align:center;">
-                            <div>
-                                <div class="header-row">${timeData.day} - ${timeData.date}</div>
-                                <div style="font-size:65px; font-weight:bold; margin:5px 0;">${String(timeData.dayRaw).padStart(2,'0')}</div>
-                                <div class="footer-row">
-                                    <span>🌙 ${timeData.lunar}</span>
-                                    <span>🕒 ${timeData.hour}:${timeData.min}</span>
-                                </div>
-                            </div>
-                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
-                        </div>
-                    `;
-                    break;
-
-                case 3:
-                    templateHTML = `
-                        <div class="template-box" style="align-items:center;">
-                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:6px; margin-top:10px;">
-                                <div style="font-size:46px; font-weight:bold;">${timeData.hour}:${timeData.min}</div>
-                                <div style="font-size:14px; font-weight:bold; border-top:1px solid #000; padding-top:4px; width:140px; text-align:center;">
-                                    ${timeData.day} | ${timeData.date}
-                                </div>
-                                <div style="font-size:13px;">🌙 ${timeData.lunar}</div>
-                            </div>
-                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
-                        </div>
-                    `;
-                    break;
-
-                case 4:
-                    templateHTML = `
-                        <div class="template-box" style="text-align:center;">
-                            <div style="display:flex; flex-direction:column; justify-content:center; flex:1; gap:10px;">
-                                <div style="font-size:15px; font-weight:bold; color:blue;">DƯƠNG LỊCH: ${timeData.date}</div>
-                                <div style="font-size:20px; font-weight:bold; color:red; border:2px dashed red; padding:6px; border-radius:4px; width:85%; margin:0 auto;">
-                                    ${timeData.lunar.toUpperCase()}
-                                </div>
-                                <div style="font-size:13px; font-weight:bold;">Giờ hệ thống: ${timeData.hour}:${timeData.min}:${timeData.sec}</div>
-                            </div>
-                            <div class="global-footer-quote-zone">${currentQuoteText}</div>
-                        </div>
-                    `;
-                    break;
-
-                case 5:
-                    templateHTML = `
-                        <div class="template-box">
-                            <div>
-                                <div class="header-row">
-                                    <span>Tháng ${timeData.month} / ${timeData.year}</span>
-                                    <span>🌡️ ${currentTemp}°C</span>
-                                </div>
-                                
-                                <div class="month-split-container">
-                                    <div class="calendar-matrix-left">
-                                        ${generateCalendarGrid(timeData.year, timeData.month, timeData.dayRaw)}
-                                    </div>
-                                    <div class="analog-clock-right">
-                                        <div class="analog-dial">
-                                            <div class="hour-mark m-12">12</div>
-                                            <div class="hour-mark m-3">3</div>
-                                            <div class="hour-mark m-6">6</div>
-                                            <div class="hour-mark m-9">9</div>
-                                            <div class="hand hour-hand" style="transform: rotate(${(timeData.hourRaw % 12) * 30 + timeData.minRaw * 0.5}deg
 
