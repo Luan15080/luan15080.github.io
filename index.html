@@ -341,7 +341,6 @@
         const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
         let currentTemplateIndex = 1; 
 
-        // Cấu hình BLE linh hoạt hơn
         const BLE_SERVICE_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
         const BLE_CHARACTERISTIC_UUID = "00001f10-0000-1000-8000-00805f9b34fb";
         let bluetoothDevice = null;
@@ -613,7 +612,6 @@
         async function connectBluetooth() {
             try {
                 logToSystem("Đang mở cửa sổ chọn thiết bị...");
-                // Sử dụng acceptAllDevices để tránh lỗi lọc thiết bị không tìm thấy dịch vụ
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [BLE_SERVICE_UUID]
@@ -629,9 +627,8 @@
                 logToSystem("Kết nối thành công!");
                 alert("Đã kết nối thành công!");
             } catch (error) {
-                // Xử lý lỗi tinh tế hơn để không làm treo giao diện
                 logToSystem(`Lỗi: ${error.message}`);
-                console.error("Lỗi BLE:", error);
+                console.error("Lỗi kết nối:", error);
             }
         }
 
@@ -663,5 +660,42 @@
                 
                 logToSystem(`Gửi thành công!`);
                 alert("Đã đồng bộ thành công!");
-            } catch
+            } catch (error) {
+                logToSystem(`Lỗi truyền: ${error.message}`);
+            }
+        }
+
+        function setupTemplateSelection() {
+            const templates = document.querySelectorAll(".template-card-item");
+            templates.forEach((card, index) => {
+                card.addEventListener("click", () => {
+                    templates.forEach(c => c.classList.remove("selected-active"));
+                    card.classList.add("selected-active");
+                    currentTemplateIndex = index + 1;
+                    logToSystem(`Đã chọn Mẫu ${currentTemplateIndex}`);
+                    renderTemplate();
+                });
+            });
+        }
+
+        window.onload = function() {
+            setupTemplateSelection();
+            renderTemplate(); 
+            
+            setInterval(() => {
+                renderTemplate(); 
+            }, 1000);
+
+            const btnConnect = document.getElementById("btn-sync-hardware");
+            if(btnConnect) btnConnect.addEventListener("click", connectBluetooth);
+
+            const btnTransfer = document.getElementById("btn-transfer-data");
+            if(btnTransfer) btnTransfer.addEventListener("click", transferDataToHardware);
+            
+            const inputTemp = document.getElementById("input-nhiet-do");
+            if(inputTemp) inputTemp.addEventListener("input", renderTemplate);
+        };
+    </script>
+</body>
+</html>
 
